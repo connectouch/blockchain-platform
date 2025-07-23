@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floating Price Ticker Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            color: white;
+        }
+        
+        .container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-content {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .api-test {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+        }
+        
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .loading { color: #60a5fa; }
+        
+        button {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            color: #60a5fa;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        
+        button:hover {
+            background: rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Floating Price Ticker - API Integration Test</h1>
+        
+        <div class="test-content">
+            <h2>Backend API Tests</h2>
+            <p>Testing the real API endpoints that the floating ticker will use:</p>
+            
+            <div class="api-test">
+                <h3>1. Live Cryptocurrency Prices</h3>
+                <button onclick="testPricesAPI()">Test /api/v2/blockchain/prices/live</button>
+                <div id="prices-result"></div>
+            </div>
+            
+            <div class="api-test">
+                <h3>2. Blockchain Overview</h3>
+                <button onclick="testOverviewAPI()">Test /api/v2/blockchain/overview</button>
+                <div id="overview-result"></div>
+            </div>
+            
+            <div class="api-test">
+                <h3>3. Network Statistics</h3>
+                <button onclick="testNetworkAPI()">Test /api/v2/blockchain/network/stats</button>
+                <div id="network-result"></div>
+            </div>
+            
+            <div class="api-test">
+                <h3>4. Health Check</h3>
+                <button onclick="testHealthAPI()">Test /health</button>
+                <div id="health-result"></div>
+            </div>
+        </div>
+        
+        <div class="test-content">
+            <h2>Floating Ticker Preview</h2>
+            <p>This simulates how the floating ticker will look with real data:</p>
+            
+            <div id="ticker-preview" style="position: relative; height: 200px; border: 1px dashed rgba(255,255,255,0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center;">
+                <p>Click "Test Live Ticker" to see the floating ticker in action</p>
+            </div>
+            
+            <button onclick="testLiveTicker()">Test Live Ticker</button>
+            <button onclick="clearTicker()">Clear Ticker</button>
+        </div>
+    </div>
+
+    <script>
+        // Test API endpoints
+        async function testPricesAPI() {
+            const resultDiv = document.getElementById('prices-result');
+            resultDiv.innerHTML = '<span class="loading">🔄 Testing prices API...</span>';
+            
+            try {
+                const response = await fetch('/api/v2/blockchain/prices/live');
+                const data = await response.json();
+                
+                if (data.success && Array.isArray(data.data)) {
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ Success!</span>
+                        <br>Retrieved ${data.data.length} cryptocurrency prices
+                        <br>Sample: ${data.data.slice(0, 3).map(coin => 
+                            `${coin.symbol}: $${coin.price?.toLocaleString() || 'N/A'} (${coin.change24h >= 0 ? '+' : ''}${coin.change24h?.toFixed(2) || 'N/A'}%)`
+                        ).join(', ')}
+                        <br>Real-time: ${data.data.some(coin => coin.isRealTime) ? 'Yes' : 'No'}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Invalid response format</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testOverviewAPI() {
+            const resultDiv = document.getElementById('overview-result');
+            resultDiv.innerHTML = '<span class="loading">🔄 Testing overview API...</span>';
+            
+            try {
+                const response = await fetch('/api/v2/blockchain/overview');
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ Success!</span>
+                        <br>Market Cap: $${(data.data.totalMarketCap / 1e12)?.toFixed(2) || 'N/A'}T
+                        <br>BTC Dominance: ${data.data.btcDominance?.toFixed(1) || 'N/A'}%
+                        <br>Real-time: ${data.data.isRealTime ? 'Yes' : 'No'}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ API returned error</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testNetworkAPI() {
+            const resultDiv = document.getElementById('network-result');
+            resultDiv.innerHTML = '<span class="loading">🔄 Testing network API...</span>';
+            
+            try {
+                const response = await fetch('/api/v2/blockchain/network/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ Success!</span>
+                        <br>Gas Price: ${data.data.gasPrice || 'N/A'} Gwei
+                        <br>Block Number: ${data.data.blockNumber?.toLocaleString() || 'N/A'}
+                        <br>Congestion: ${data.data.congestionLevel || 'N/A'}
+                        <br>Real-time: ${data.data.isRealTime ? 'Yes' : 'No'}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ API returned error</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testHealthAPI() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = '<span class="loading">🔄 Testing health API...</span>';
+            
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ Backend is healthy!</span>
+                        <br>Timestamp: ${new Date(data.timestamp).toLocaleString()}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Backend health check failed</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testLiveTicker() {
+            const previewDiv = document.getElementById('ticker-preview');
+            previewDiv.innerHTML = '<span class="loading">🔄 Loading live ticker data...</span>';
+            
+            try {
+                const response = await fetch('/api/v2/blockchain/prices/live');
+                const data = await response.json();
+                
+                if (data.success && Array.isArray(data.data)) {
+                    const topCoins = data.data.filter(coin => ['BTC', 'ETH', 'BNB'].includes(coin.symbol)).slice(0, 3);
+                    
+                    previewDiv.innerHTML = `
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                            ${topCoins.map(coin => `
+                                <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 0.5rem; text-align: center; min-width: 150px;">
+                                    <div style="font-weight: bold; color: #60a5fa;">${coin.symbol}</div>
+                                    <div style="font-size: 1.2rem; margin: 0.5rem 0;">$${coin.price?.toLocaleString() || 'N/A'}</div>
+                                    <div style="color: ${coin.change24h >= 0 ? '#4ade80' : '#f87171'};">
+                                        ${coin.change24h >= 0 ? '↗' : '↘'} ${coin.change24h?.toFixed(2) || 'N/A'}%
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">
+                                        ${coin.isRealTime ? 'Real-time' : 'Cached'}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="margin-top: 1rem; text-align: center; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                            Last updated: ${new Date().toLocaleTimeString()}
+                        </div>
+                    `;
+                } else {
+                    previewDiv.innerHTML = '<span class="error">❌ Failed to load ticker data</span>';
+                }
+            } catch (error) {
+                previewDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        function clearTicker() {
+            const previewDiv = document.getElementById('ticker-preview');
+            previewDiv.innerHTML = '<p>Click "Test Live Ticker" to see the floating ticker in action</p>';
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            console.log('🎯 Floating Ticker Test Page Loaded');
+            console.log('Testing backend connectivity...');
+            testHealthAPI();
+        });
+    </script>
+</body>
+</html>

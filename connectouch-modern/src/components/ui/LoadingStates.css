@@ -1,0 +1,537 @@
+/**
+ * Loading States CSS for Connectouch Platform
+ * Implements Phase 3 UX/UI Enhancement - Comprehensive Loading Experience
+ */
+
+/* CSS Custom Properties for Theming */
+:root {
+  --loading-primary: #4ECDC4;
+  --loading-secondary: #45B7D1;
+  --loading-accent: #96CEB4;
+  --loading-text: #2C3E50;
+  --loading-bg: #F8F9FA;
+  --loading-skeleton: #E9ECEF;
+  --loading-skeleton-highlight: #F8F9FA;
+  
+  /* Animation Durations */
+  --loading-duration-fast: 0.8s;
+  --loading-duration-normal: 1.2s;
+  --loading-duration-slow: 2s;
+  
+  /* Sizes */
+  --loading-size-small: 16px;
+  --loading-size-medium: 24px;
+  --loading-size-large: 32px;
+}
+
+/* Dark Theme Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --loading-text: #E9ECEF;
+    --loading-bg: #2C3E50;
+    --loading-skeleton: #495057;
+    --loading-skeleton-highlight: #6C757D;
+  }
+}
+
+/* Spinner Loading Styles */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.loading-spinner__circle {
+  position: relative;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  animation: spin var(--loading-duration-normal) linear infinite;
+}
+
+.loading-spinner--small .loading-spinner__circle {
+  width: var(--loading-size-small);
+  height: var(--loading-size-small);
+}
+
+.loading-spinner--medium .loading-spinner__circle {
+  width: var(--loading-size-medium);
+  height: var(--loading-size-medium);
+}
+
+.loading-spinner--large .loading-spinner__circle {
+  width: var(--loading-size-large);
+  height: var(--loading-size-large);
+}
+
+.loading-spinner__path {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  animation: spin var(--loading-duration-normal) linear infinite;
+}
+
+.loading-spinner--primary {
+  color: var(--loading-primary);
+}
+
+.loading-spinner--secondary {
+  color: var(--loading-secondary);
+}
+
+.loading-spinner--accent {
+  color: var(--loading-accent);
+}
+
+.loading-spinner__text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--loading-text);
+  text-align: center;
+}
+
+/* Skeleton Loading Styles */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--loading-skeleton) 25%,
+    var(--loading-skeleton-highlight) 50%,
+    var(--loading-skeleton) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer var(--loading-duration-slow) ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton--text {
+  border-radius: 4px;
+}
+
+.skeleton--rectangular {
+  border-radius: 8px;
+}
+
+.skeleton--circular {
+  border-radius: 50%;
+}
+
+.skeleton--card {
+  border-radius: 12px;
+}
+
+.skeleton-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Pulse Loading Styles */
+.loading-pulse {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-pulse__dot {
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: pulse var(--loading-duration-normal) ease-in-out infinite;
+}
+
+.loading-pulse--small .loading-pulse__dot {
+  width: 6px;
+  height: 6px;
+}
+
+.loading-pulse--medium .loading-pulse__dot {
+  width: 8px;
+  height: 8px;
+}
+
+.loading-pulse--large .loading-pulse__dot {
+  width: 12px;
+  height: 12px;
+}
+
+.loading-pulse__dot--1 {
+  animation-delay: 0s;
+}
+
+.loading-pulse__dot--2 {
+  animation-delay: 0.2s;
+}
+
+.loading-pulse__dot--3 {
+  animation-delay: 0.4s;
+}
+
+.loading-pulse--primary {
+  color: var(--loading-primary);
+}
+
+.loading-pulse--secondary {
+  color: var(--loading-secondary);
+}
+
+.loading-pulse--accent {
+  color: var(--loading-accent);
+}
+
+/* Dots Loading Styles */
+.loading-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.loading-dots__container {
+  display: flex;
+  gap: 4px;
+}
+
+.loading-dots__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: bounce var(--loading-duration-normal) ease-in-out infinite;
+}
+
+.loading-dots__dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.loading-dots__dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.loading-dots__dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.loading-dots--small .loading-dots__dot {
+  width: 6px;
+  height: 6px;
+}
+
+.loading-dots--large .loading-dots__dot {
+  width: 12px;
+  height: 12px;
+}
+
+.loading-dots--primary {
+  color: var(--loading-primary);
+}
+
+.loading-dots--secondary {
+  color: var(--loading-secondary);
+}
+
+.loading-dots--accent {
+  color: var(--loading-accent);
+}
+
+.loading-dots__text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--loading-text);
+  text-align: center;
+}
+
+/* Progress Bar Styles */
+.loading-progress {
+  width: 100%;
+}
+
+.loading-progress__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.loading-progress__text {
+  font-size: 14px;
+  color: var(--loading-text);
+  font-weight: 500;
+}
+
+.loading-progress__percentage {
+  font-size: 12px;
+  color: var(--loading-text);
+  opacity: 0.8;
+}
+
+.loading-progress__track {
+  width: 100%;
+  height: 8px;
+  background-color: var(--loading-skeleton);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.loading-progress__fill {
+  height: 100%;
+  background-color: currentColor;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  animation: progress-glow var(--loading-duration-slow) ease-in-out infinite;
+}
+
+.loading-progress--primary {
+  color: var(--loading-primary);
+}
+
+.loading-progress--secondary {
+  color: var(--loading-secondary);
+}
+
+.loading-progress--accent {
+  color: var(--loading-accent);
+}
+
+/* Card Skeleton Styles */
+.card-skeleton {
+  padding: 20px;
+  border: 1px solid var(--loading-skeleton);
+  border-radius: 12px;
+  background-color: var(--loading-bg);
+}
+
+.card-skeleton__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.card-skeleton__title {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-skeleton__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-skeleton__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Chart Skeleton Styles */
+.chart-skeleton {
+  padding: 16px;
+  border: 1px solid var(--loading-skeleton);
+  border-radius: 8px;
+  background-color: var(--loading-bg);
+}
+
+.chart-skeleton__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-skeleton__chart {
+  height: 200px;
+  margin-bottom: 16px;
+}
+
+.chart-skeleton__bars {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  height: 100%;
+  gap: 8px;
+}
+
+.chart-skeleton__bar {
+  flex: 1;
+  background: linear-gradient(
+    180deg,
+    var(--loading-skeleton-highlight) 0%,
+    var(--loading-skeleton) 100%
+  );
+  border-radius: 4px 4px 0 0;
+  animation: shimmer var(--loading-duration-slow) ease-in-out infinite;
+}
+
+.chart-skeleton__legend {
+  display: flex;
+  gap: 20px;
+}
+
+/* Table Skeleton Styles */
+.table-skeleton {
+  border: 1px solid var(--loading-skeleton);
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--loading-bg);
+}
+
+.table-skeleton__header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  background-color: var(--loading-skeleton);
+  border-bottom: 1px solid var(--loading-skeleton);
+}
+
+.table-skeleton__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-skeleton__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid var(--loading-skeleton);
+}
+
+.table-skeleton__row:last-child {
+  border-bottom: none;
+}
+
+/* Loading Overlay Styles */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-overlay--backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.loading-overlay__content {
+  background-color: var(--loading-bg);
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Lazy Loader Styles */
+.lazy-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 20px;
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes progress-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 15px currentColor;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card-skeleton {
+    padding: 16px;
+  }
+  
+  .chart-skeleton {
+    padding: 12px;
+  }
+  
+  .table-skeleton__header,
+  .table-skeleton__row {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .loading-overlay__content {
+    padding: 24px;
+    margin: 20px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner__circle,
+  .loading-spinner__path,
+  .skeleton,
+  .loading-pulse__dot,
+  .loading-dots__dot,
+  .loading-progress__fill,
+  .chart-skeleton__bar {
+    animation: none;
+  }
+  
+  .loading-progress__fill {
+    transition: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --loading-skeleton: #000000;
+    --loading-skeleton-highlight: #FFFFFF;
+  }
+}

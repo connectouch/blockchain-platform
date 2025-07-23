@@ -1,0 +1,188 @@
+// Connectouch Blockchain AI Platform Database Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  username    String   @unique
+  walletAddress String? @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isActive    Boolean  @default(true)
+  
+  // Profile information
+  firstName   String?
+  lastName    String?
+  avatar      String?
+  bio         String?
+  
+  // Blockchain preferences
+  preferredChain String? @default("ethereum")
+  
+  // Relationships
+  sessions    Session[]
+  queries     AIQuery[]
+  portfolios  Portfolio[]
+  
+  @@map("users")
+}
+
+// Session Management
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  isActive  Boolean  @default(true)
+  
+  // Session metadata
+  ipAddress String?
+  userAgent String?
+  
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+// AI Query Management
+model AIQuery {
+  id        String   @id @default(cuid())
+  userId    String?
+  query     String
+  response  String?
+  sector    String   // defi, nfts, gamefi, daos, infrastructure, web3
+  createdAt DateTime @default(now())
+  
+  // Query metadata
+  tokens    Int?
+  cost      Float?
+  duration  Int?     // milliseconds
+  
+  // Relationships
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@map("ai_queries")
+}
+
+// Portfolio Management
+model Portfolio {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Portfolio metadata
+  totalValue Float?   @default(0)
+  chain      String   @default("ethereum")
+  
+  // Relationships
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assets PortfolioAsset[]
+  
+  @@map("portfolios")
+}
+
+// Portfolio Assets
+model PortfolioAsset {
+  id          String  @id @default(cuid())
+  portfolioId String
+  symbol      String
+  name        String
+  amount      Float
+  value       Float?
+  
+  // Asset metadata
+  contractAddress String?
+  tokenId         String?
+  assetType       String  // token, nft, lp
+  
+  // Relationships
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  
+  @@map("portfolio_assets")
+}
+
+// Blockchain Data Cache
+model TokenPrice {
+  id        String   @id @default(cuid())
+  symbol    String
+  name      String
+  price     Float
+  change24h Float?
+  updatedAt DateTime @updatedAt
+  
+  // Price metadata
+  marketCap   Float?
+  volume24h   Float?
+  chain       String @default("ethereum")
+  
+  @@unique([symbol, chain])
+  @@map("token_prices")
+}
+
+// DeFi Protocol Data
+model DeFiProtocol {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  tvl       Float?
+  apy       Float?
+  category  String   // lending, dex, yield, etc.
+  chain     String
+  updatedAt DateTime @updatedAt
+  
+  // Protocol metadata
+  website     String?
+  description String?
+  riskScore   Float?
+  
+  @@map("defi_protocols")
+}
+
+// NFT Collection Data
+model NFTCollection {
+  id          String   @id @default(cuid())
+  name        String
+  symbol      String?
+  floorPrice  Float?
+  volume24h   Float?
+  totalSupply Int?
+  updatedAt   DateTime @updatedAt
+  
+  // Collection metadata
+  description String?
+  website     String?
+  chain       String @default("ethereum")
+  
+  @@unique([name, chain])
+  @@map("nft_collections")
+}
+
+// System Configuration
+model SystemConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+  
+  @@map("system_config")
+}
+
+// API Rate Limiting
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  count     Int      @default(0)
+  resetTime DateTime
+  
+  @@map("rate_limits")
+}
