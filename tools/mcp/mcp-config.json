@@ -1,0 +1,217 @@
+{
+  "mcp_configuration": {
+    "version": "2.0.0",
+    "description": "Enterprise MCP Configuration for Connectouch Platform",
+    "last_updated": "2025-07-24",
+    "environment": "production",
+    "categories": {
+      "infrastructure": {
+        "priority": 1,
+        "description": "Core infrastructure and deployment MCPs",
+        "mcps": {
+          "docker": {
+            "name": "Docker MCP",
+            "version": "latest",
+            "description": "Container management and deployment automation",
+            "repository": "docker/docker-mcp",
+            "configuration": {
+              "docker_host": "unix:///var/run/docker.sock",
+              "api_version": "auto",
+              "timeout": 60,
+              "tls_verify": false
+            },
+            "required_permissions": ["docker.containers", "docker.images", "docker.networks"],
+            "environment_variables": {
+              "DOCKER_HOST": "unix:///var/run/docker.sock",
+              "DOCKER_API_VERSION": "1.41"
+            }
+          },
+          "kubernetes": {
+            "name": "Kubernetes MCP",
+            "version": "latest",
+            "description": "Kubernetes orchestration and management",
+            "repository": "kubernetes/kubernetes-mcp",
+            "configuration": {
+              "kubeconfig": "~/.kube/config",
+              "namespace": "connectouch-platform",
+              "timeout": 120
+            },
+            "environment_variables": {
+              "KUBECONFIG": "~/.kube/config",
+              "K8S_NAMESPACE": "connectouch-platform"
+            }
+          },
+          "terraform": {
+            "name": "Terraform MCP",
+            "version": "latest",
+            "description": "Infrastructure as Code provisioning",
+            "repository": "hashicorp/terraform-mcp",
+            "configuration": {
+              "workspace_dir": "./infrastructure/terraform",
+              "auto_approve": false,
+              "backend": "s3"
+            },
+            "environment_variables": {
+              "TF_VAR_environment": "${ENVIRONMENT}",
+              "TF_VAR_region": "${AWS_DEFAULT_REGION}"
+            }
+          }
+        }
+      },
+      "databases": {
+        "priority": 2,
+        "description": "Database and caching MCPs",
+        "mcps": {
+          "mongodb": {
+            "name": "MongoDB MCP",
+            "version": "latest",
+            "description": "MongoDB database management",
+            "repository": "mongodb/mongodb-mcp",
+            "configuration": {
+              "connection_timeout": 30,
+              "max_pool_size": 100
+            },
+            "environment_variables": {
+              "MONGODB_URI": "${MONGODB_URI}",
+              "MONGODB_DATABASE": "connectouch_platform"
+            }
+          },
+          "redis": {
+            "name": "Redis MCP",
+            "version": "latest",
+            "description": "Redis caching and session management",
+            "repository": "redis/redis-mcp",
+            "configuration": {
+              "max_connections": 50,
+              "timeout": 5000
+            },
+            "environment_variables": {
+              "REDIS_URL": "${REDIS_URL}",
+              "REDIS_PASSWORD": "${REDIS_PASSWORD}"
+            }
+          }
+        }
+      },
+      "monitoring": {
+        "priority": 3,
+        "description": "Monitoring and observability MCPs",
+        "mcps": {
+          "datadog": {
+            "name": "Datadog MCP",
+            "version": "latest",
+            "description": "Application performance monitoring",
+            "repository": "datadog/datadog-mcp",
+            "configuration": {
+              "service_name": "connectouch-platform",
+              "environment": "${ENVIRONMENT}",
+              "version": "2.0.0"
+            },
+            "environment_variables": {
+              "DATADOG_API_KEY": "${DATADOG_API_KEY}",
+              "DATADOG_APP_KEY": "${DATADOG_APP_KEY}",
+              "DATADOG_SITE": "datadoghq.com"
+            }
+          },
+          "prometheus": {
+            "name": "Prometheus MCP",
+            "version": "latest",
+            "description": "Metrics collection and alerting",
+            "repository": "prometheus/prometheus-mcp",
+            "configuration": {
+              "scrape_interval": "15s",
+              "evaluation_interval": "15s"
+            },
+            "environment_variables": {
+              "PROMETHEUS_URL": "http://localhost:9090",
+              "PROMETHEUS_USERNAME": "${PROMETHEUS_USERNAME}",
+              "PROMETHEUS_PASSWORD": "${PROMETHEUS_PASSWORD}"
+            }
+          },
+          "grafana": {
+            "name": "Grafana MCP",
+            "version": "latest",
+            "description": "Metrics visualization and dashboards",
+            "repository": "grafana/grafana-mcp",
+            "configuration": {
+              "default_dashboard": "connectouch-overview",
+              "auto_provision": true
+            },
+            "environment_variables": {
+              "GRAFANA_URL": "${GRAFANA_URL}",
+              "GRAFANA_API_KEY": "${GRAFANA_API_KEY}"
+            }
+          }
+        }
+      },
+      "security": {
+        "priority": 4,
+        "description": "Security and secrets management MCPs",
+        "mcps": {
+          "vault": {
+            "name": "HashiCorp Vault MCP",
+            "version": "latest",
+            "description": "Secrets management and encryption",
+            "repository": "hashicorp/vault-mcp",
+            "configuration": {
+              "auth_method": "token",
+              "mount_path": "secret/connectouch"
+            },
+            "environment_variables": {
+              "VAULT_ADDR": "${VAULT_ADDR}",
+              "VAULT_TOKEN": "${VAULT_TOKEN}"
+            }
+          },
+          "snyk": {
+            "name": "Snyk Security MCP",
+            "version": "latest",
+            "description": "Security vulnerability scanning",
+            "repository": "snyk/snyk-mcp",
+            "configuration": {
+              "auto_scan": true,
+              "severity_threshold": "medium"
+            },
+            "environment_variables": {
+              "SNYK_TOKEN": "${SNYK_TOKEN}",
+              "SNYK_ORG": "${SNYK_ORG_ID}"
+            }
+          }
+        }
+      },
+      "ai_ml": {
+        "priority": 5,
+        "description": "AI and Machine Learning MCPs",
+        "mcps": {
+          "openai": {
+            "name": "OpenAI MCP",
+            "version": "latest",
+            "description": "AI model integration and management",
+            "repository": "openai/openai-mcp",
+            "configuration": {
+              "model": "gpt-4",
+              "max_tokens": 4000,
+              "temperature": 0.7
+            },
+            "environment_variables": {
+              "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+              "OPENAI_ORG_ID": "${OPENAI_ORG_ID}"
+            }
+          },
+          "tensorflow": {
+            "name": "TensorFlow MCP",
+            "version": "latest",
+            "description": "Machine learning model training and inference",
+            "repository": "tensorflow/tensorflow-mcp",
+            "configuration": {
+              "model_path": "./models",
+              "gpu_enabled": false
+            },
+            "environment_variables": {
+              "TF_MODEL_PATH": "./models",
+              "TF_GPU_ENABLED": "false"
+            }
+          }
+        }
+      }
+    }
+  }
+}
