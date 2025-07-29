@@ -3,31 +3,23 @@ import { logger } from '../utils/logger';
 import { DeFiProtocolData, MarketConditions } from '../types/defi';
 
 /**
- * DeFi Data Service - Fetches real-time data from multiple DeFi protocols
- * Integrates with CoinGecko, DeFiPulse, 1inch, and direct protocol APIs
+ * DeFi Data Service - Fetches real-time data from approved APIs only
+ * Integrates with CoinMarketCap and DeFiLlama for protocol data
  */
 export class DeFiDataService {
-  private coingeckoApiKey: string;
-  private defipulseApiKey: string;
-  private oneinchApiKey: string;
+  private coinmarketcapApiKey: string;
   private baseUrls: Record<string, string>;
 
   constructor() {
-    this.coingeckoApiKey = process.env.COINGECKO_API_KEY || '';
-    this.defipulseApiKey = process.env.DEFIPULSE_API_KEY || '';
-    this.oneinchApiKey = process.env.ONEINCH_API_KEY || '';
+    this.coinmarketcapApiKey = process.env.COINMARKETCAP_API_KEY || '';
 
     this.baseUrls = {
-      coingecko: 'https://api.coingecko.com/api/v3',
+      coinmarketcap: 'https://pro-api.coinmarketcap.com/v1',
       defillama: 'https://api.llama.fi',
-      defipulse: 'https://data-api.defipulse.com/api/v1',
-      oneinch: 'https://api.1inch.dev',
-      uniswap: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3',
-      aave: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v3',
-      compound: 'https://api.compound.finance/api/v2'
+      alchemy: 'https://eth-mainnet.g.alchemy.com/v2'
     };
 
-    logger.info('DeFi Data Service initialized with real-time APIs');
+    logger.info('DeFi Data Service initialized with approved APIs only');
   }
 
   /**
@@ -68,7 +60,9 @@ export class DeFiDataService {
 
     } catch (error) {
       logger.error('Error fetching protocol data:', error);
-      throw new Error(`Failed to fetch DeFi protocol data: ${error instanceof Error ? error.message : 'Unknown error'}
+      throw new Error(`Failed to fetch DeFi protocol data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 
   /**
    * Get real-time DeFi protocols data from DeFiLlama
@@ -130,8 +124,6 @@ export class DeFiDataService {
     if (cat.includes('staking')) return 'staking';
     if (cat.includes('derivatives') || cat.includes('options')) return 'derivatives';
     return 'dex';
-  }`);
-    }
   }
 
   /**
@@ -139,16 +131,16 @@ export class DeFiDataService {
    */
   async getUniswapData(): Promise<DeFiProtocolData[]> {
     try {
-      // Fetch from CoinGecko for TVL and basic data
-      const response = await axios.get(`${this.baseUrls.coingecko}/coins/uniswap`, {
+      // Fetch from CoinMarketCap for market data
+      const response = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest', {
         params: {
-          localization: false,
-          tickers: false,
-          market_data: true,
-          community_data: false,
-          developer_data: false
+          symbol: 'UNI',
+          convert: 'USD'
         },
-        headers: this.coingeckoApiKey ? { 'x-cg-demo-api-key': this.coingeckoApiKey } : {}
+        headers: {
+          'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY || '',
+          'Accept': 'application/json'
+        }
       });
 
       // Get additional DeFi-specific data
@@ -193,12 +185,15 @@ export class DeFiDataService {
    */
   async getAaveData(): Promise<DeFiProtocolData[]> {
     try {
-      const response = await axios.get(`${this.baseUrls.coingecko}/coins/aave`, {
+      const response = await axios.get(`${this.baseUrls.coinmarketcap}/cryptocurrency/quotes/latest`, {
         params: {
-          localization: false,
-          market_data: true
+          symbol: 'AAVE',
+          convert: 'USD'
         },
-        headers: this.coingeckoApiKey ? { 'x-cg-demo-api-key': this.coingeckoApiKey } : {}
+        headers: {
+          'X-CMC_PRO_API_KEY': this.coinmarketcapApiKey,
+          'Accept': 'application/json'
+        }
       });
 
       const defiData = await this.getProtocolTVL('aave');
@@ -375,7 +370,7 @@ export class DeFiDataService {
         users24h
       };
     } catch (error) {
-      logger.warn(`Failed to fetch TVL for ${protocol}, using fallback:`, error.message);
+      logger.warn(`Failed to fetch TVL for ${protocol}, using fallback:`, error instanceof Error ? error.message : 'Unknown error');
       // Fallback to mock data if API fails
       const mockData = {
         uniswap: { tvl: 3500000000, fees24h: 2400000, users24h: 45000 },
@@ -388,11 +383,14 @@ export class DeFiDataService {
 
   private async getETHPrice(): Promise<number> {
     try {
-      const response = await axios.get(`${this.baseUrls.coingecko}/simple/price`, {
-        params: { ids: 'ethereum', vs_currencies: 'usd' },
-        headers: this.coingeckoApiKey ? { 'x-cg-demo-api-key': this.coingeckoApiKey } : {}
+      const response = await axios.get(`${this.baseUrls.coinmarketcap}/cryptocurrency/quotes/latest`, {
+        params: { symbol: 'ETH', convert: 'USD' },
+        headers: {
+          'X-CMC_PRO_API_KEY': this.coinmarketcapApiKey,
+          'Accept': 'application/json'
+        }
       });
-      return response.data.ethereum.usd;
+      return response.data.data.ETH.quote.USD.price;
     } catch {
       return 2000; // Fallback price
     }
@@ -400,11 +398,14 @@ export class DeFiDataService {
 
   private async getBTCPrice(): Promise<number> {
     try {
-      const response = await axios.get(`${this.baseUrls.coingecko}/simple/price`, {
-        params: { ids: 'bitcoin', vs_currencies: 'usd' },
-        headers: this.coingeckoApiKey ? { 'x-cg-demo-api-key': this.coingeckoApiKey } : {}
+      const response = await axios.get(`${this.baseUrls.coinmarketcap}/cryptocurrency/quotes/latest`, {
+        params: { symbol: 'BTC', convert: 'USD' },
+        headers: {
+          'X-CMC_PRO_API_KEY': this.coinmarketcapApiKey,
+          'Accept': 'application/json'
+        }
       });
-      return response.data.bitcoin.usd;
+      return response.data.data.BTC.quote.USD.price;
     } catch {
       return 40000; // Fallback price
     }
@@ -448,7 +449,10 @@ export class DeFiDataService {
       logger.info('Testing DeFi data service connections...');
       
       const testResults = await Promise.allSettled([
-        axios.get(`${this.baseUrls.coingecko}/ping`, { timeout: 5000 }),
+        axios.get(`${this.baseUrls.coinmarketcap}/key/info`, {
+          headers: { 'X-CMC_PRO_API_KEY': this.coinmarketcapApiKey },
+          timeout: 5000
+        }),
         this.getETHPrice(),
         this.getBTCPrice()
       ]);

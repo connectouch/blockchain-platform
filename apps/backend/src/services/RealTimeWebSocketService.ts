@@ -1,5 +1,5 @@
 import { Server as SocketIOServer } from 'socket.io';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 import { marketDataService } from './MarketDataService';
 import { alchemyService } from './AlchemyService';
 

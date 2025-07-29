@@ -4,8 +4,8 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '@/utils/logger';
-import { envValidator } from '@/utils/envValidator';
+import { logger } from '../utils/logger';
+import { envValidator } from '../utils/envValidator';
 
 export interface ApiError extends Error {
   statusCode?: number;

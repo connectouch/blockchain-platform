@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import { logger } from '@/utils/logger';
-import { CacheManager } from '@/config/database';
+import { logger } from '../utils/logger';
+import { CacheManager } from '../utils/cache';
 import BlockchainDataService from './BlockchainDataService';
 
 /**

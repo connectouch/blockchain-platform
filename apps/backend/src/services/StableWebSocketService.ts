@@ -4,7 +4,7 @@
  */
 
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 import { EventEmitter } from 'events';
 
 export interface ClientSubscription {
@@ -187,8 +187,8 @@ export class StableWebSocketService extends EventEmitter {
     socket.on('error', (error) => {
       logger.error('Socket error', {
         clientId: socket.id,
-        error: error.message,
-        stack: error.stack
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       });
       this.metrics.errorRate++;
     });
@@ -248,7 +248,7 @@ export class StableWebSocketService extends EventEmitter {
     } catch (error) {
       logger.error('Subscription error', {
         clientId: socket.id,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         data
       });
       
@@ -296,7 +296,7 @@ export class StableWebSocketService extends EventEmitter {
     } catch (error) {
       logger.error('Unsubscription error', {
         clientId: socket.id,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         data
       });
     }
@@ -338,7 +338,7 @@ export class StableWebSocketService extends EventEmitter {
     const request = socket.request;
     
     return {
-      userAgent: request.headers['user-agent'],
+      userAgent: request.headers['user-agent'] as string,
       ip: socket.handshake.address,
       clientType: 'web' // Default, can be updated later
     };
@@ -452,7 +452,7 @@ export class StableWebSocketService extends EventEmitter {
     } catch (error) {
       logger.error('Broadcast error', {
         subscriptionKey,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }

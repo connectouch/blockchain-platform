@@ -3,7 +3,7 @@
  * Optimizes database queries and API calls for better performance
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 
 export interface QueryMetrics {
   totalQueries: number;
@@ -155,7 +155,7 @@ export class QueryOptimizer {
         queryId,
         queryName,
         executionTime,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
 
       throw error;
@@ -245,6 +245,7 @@ export class QueryOptimizer {
         setTimeout(() => inThrottle = false, limit);
         return result;
       }
+      return undefined;
     };
   }
 
@@ -272,7 +273,9 @@ export class QueryOptimizer {
       // Manage cache size
       if (cache.size >= maxCacheSize) {
         const oldestKey = cache.keys().next().value;
-        cache.delete(oldestKey);
+        if (oldestKey !== undefined) {
+          cache.delete(oldestKey);
+        }
       }
       
       cache.set(key, { result, timestamp: Date.now() });
@@ -290,7 +293,7 @@ export class QueryOptimizer {
     const properties = propertyPath.split('.');
     
     return objects.map(obj => {
-      let value = obj;
+      let value: any = obj;
       for (const prop of properties) {
         value = value?.[prop as keyof typeof value];
         if (value === undefined) break;

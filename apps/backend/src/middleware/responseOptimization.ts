@@ -5,8 +5,8 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { createHash } from 'crypto';
-import { logger } from '@/utils/logger';
-import { envValidator } from '@/utils/envValidator';
+import { logger } from '../utils/logger';
+import { envValidator } from '../utils/envValidator';
 
 export interface CacheConfig {
   ttl: number; // Time to live in seconds

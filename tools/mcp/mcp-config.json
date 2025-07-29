@@ -177,14 +177,14 @@
           }
         }
       },
-      "ai_ml": {
+      "approved_apis": {
         "priority": 5,
-        "description": "AI and Machine Learning MCPs",
+        "description": "Approved External API MCPs (OpenAI, Alchemy, CoinMarketCap only)",
         "mcps": {
           "openai": {
             "name": "OpenAI MCP",
             "version": "latest",
-            "description": "AI model integration and management",
+            "description": "AI model integration and management (APPROVED)",
             "repository": "openai/openai-mcp",
             "configuration": {
               "model": "gpt-4",
@@ -192,22 +192,50 @@
               "temperature": 0.7
             },
             "environment_variables": {
-              "OPENAI_API_KEY": "${OPENAI_API_KEY}",
-              "OPENAI_ORG_ID": "${OPENAI_ORG_ID}"
+              "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+            },
+            "security": {
+              "api_key_validation": true,
+              "rate_limiting": true,
+              "usage_monitoring": true
             }
           },
-          "tensorflow": {
-            "name": "TensorFlow MCP",
+          "alchemy": {
+            "name": "Alchemy Blockchain MCP",
             "version": "latest",
-            "description": "Machine learning model training and inference",
-            "repository": "tensorflow/tensorflow-mcp",
+            "description": "Blockchain data integration via Alchemy (APPROVED)",
+            "repository": "alchemy/alchemy-mcp",
             "configuration": {
-              "model_path": "./models",
-              "gpu_enabled": false
+              "network": "mainnet",
+              "timeout": 15000,
+              "retry_attempts": 3
             },
             "environment_variables": {
-              "TF_MODEL_PATH": "./models",
-              "TF_GPU_ENABLED": "false"
+              "ALCHEMY_API_KEY": "${ALCHEMY_API_KEY}"
+            },
+            "security": {
+              "api_key_validation": true,
+              "rate_limiting": true,
+              "usage_monitoring": true
+            }
+          },
+          "coinmarketcap": {
+            "name": "CoinMarketCap MCP",
+            "version": "latest",
+            "description": "Cryptocurrency market data via CoinMarketCap (APPROVED)",
+            "repository": "coinmarketcap/coinmarketcap-mcp",
+            "configuration": {
+              "base_url": "https://pro-api.coinmarketcap.com/v1",
+              "timeout": 10000,
+              "cache_ttl": 60
+            },
+            "environment_variables": {
+              "COINMARKETCAP_API_KEY": "${COINMARKETCAP_API_KEY}"
+            },
+            "security": {
+              "api_key_validation": true,
+              "rate_limiting": true,
+              "usage_monitoring": true
             }
           }
         }

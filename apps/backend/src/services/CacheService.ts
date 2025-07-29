@@ -3,9 +3,9 @@
  * Multi-layer caching with Redis and in-memory fallback
  */
 
-import { redisClient } from '@/config/database';
-import { logger } from '@/utils/logger';
-import { envValidator } from '@/utils/envValidator';
+import { redisClient } from '../config/database';
+import { logger } from '../utils/logger';
+import { envValidator } from '../utils/envValidator';
 
 export interface CacheOptions {
   ttl?: number; // Time to live in seconds
@@ -67,9 +67,9 @@ export class CacheService {
             return JSON.parse(value);
           }
         } catch (error) {
-          logger.warn('Redis get error, falling back to memory', { 
-            key: key.substring(0, 20), 
-            error: error.message 
+          logger.warn('Redis get error, falling back to memory', {
+            key: key.substring(0, 20),
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
           this.stats.errors++;
         }
@@ -92,7 +92,7 @@ export class CacheService {
       return null;
 
     } catch (error) {
-      logger.error('Cache get error', { key: key.substring(0, 20), error: error.message });
+      logger.error('Cache get error', { key: key.substring(0, 20), error: error instanceof Error ? error.message : 'Unknown error' });
       this.stats.errors++;
       return null;
     }
@@ -120,9 +120,9 @@ export class CacheService {
             }
           }
         } catch (error) {
-          logger.warn('Redis set error', { 
-            key: key.substring(0, 20), 
-            error: error.message 
+          logger.warn('Redis set error', {
+            key: key.substring(0, 20),
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
           this.stats.errors++;
         }
@@ -152,7 +152,7 @@ export class CacheService {
       return true;
 
     } catch (error) {
-      logger.error('Cache set error', { key: key.substring(0, 20), error: error.message });
+      logger.error('Cache set error', { key: key.substring(0, 20), error: error instanceof Error ? error.message : 'Unknown error' });
       this.stats.errors++;
       return false;
     }
@@ -171,9 +171,9 @@ export class CacheService {
           const result = await redisClient.del(key);
           deleted = result > 0;
         } catch (error) {
-          logger.warn('Redis delete error', { 
-            key: key.substring(0, 20), 
-            error: error.message 
+          logger.warn('Redis delete error', {
+            key: key.substring(0, 20),
+            error: error instanceof Error ? error.message : 'Unknown error'
           });
           this.stats.errors++;
         }
@@ -191,7 +191,7 @@ export class CacheService {
       return deleted;
 
     } catch (error) {
-      logger.error('Cache delete error', { key: key.substring(0, 20), error: error.message });
+      logger.error('Cache delete error', { key: key.substring(0, 20), error: error instanceof Error ? error.message : 'Unknown error' });
       this.stats.errors++;
       return false;
     }
@@ -214,7 +214,7 @@ export class CacheService {
             await redisClient.del(`tag:${tag}`);
           }
         } catch (error) {
-          logger.warn('Redis tag invalidation error', { tag, error: error.message });
+          logger.warn('Redis tag invalidation error', { tag, error: error instanceof Error ? error.message : 'Unknown error' });
           this.stats.errors++;
         }
       }
@@ -231,7 +231,7 @@ export class CacheService {
       return invalidatedCount;
 
     } catch (error) {
-      logger.error('Cache tag invalidation error', { tag, error: error.message });
+      logger.error('Cache tag invalidation error', { tag, error: error instanceof Error ? error.message : 'Unknown error' });
       this.stats.errors++;
       return 0;
     }
@@ -257,7 +257,7 @@ export class CacheService {
       await this.set(key, value, options);
       return value;
     } catch (error) {
-      logger.error('Cache factory error', { key: key.substring(0, 20), error: error.message });
+      logger.error('Cache factory error', { key: key.substring(0, 20), error: error instanceof Error ? error.message : 'Unknown error' });
       throw error;
     }
   }
@@ -279,7 +279,7 @@ export class CacheService {
           }
         }
       } catch (error) {
-        logger.warn('Redis mget error', { keyCount: keys.length, error: error.message });
+        logger.warn('Redis mget error', { keyCount: keys.length, error: error instanceof Error ? error.message : 'Unknown error' });
         this.stats.errors++;
       }
     }
@@ -310,7 +310,7 @@ export class CacheService {
         try {
           await redisClient.flushDb();
         } catch (error) {
-          logger.warn('Redis clear error', { error: error.message });
+          logger.warn('Redis clear error', { error: error instanceof Error ? error.message : 'Unknown error' });
           this.stats.errors++;
         }
       }
@@ -321,7 +321,7 @@ export class CacheService {
       logger.info('Cache cleared');
 
     } catch (error) {
-      logger.error('Cache clear error', { error: error.message });
+      logger.error('Cache clear error', { error: error instanceof Error ? error.message : 'Unknown error' });
       this.stats.errors++;
     }
   }

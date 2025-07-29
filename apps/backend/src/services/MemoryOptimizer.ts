@@ -3,7 +3,7 @@
  * Monitors and optimizes memory usage, prevents memory leaks
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 import { EventEmitter } from 'events';
 
 export interface MemoryStats {
@@ -241,7 +241,7 @@ export class MemoryOptimizer extends EventEmitter {
       this.emit('garbageCollection', { duration: gcDuration, count: this.stats.gcCount });
 
     } catch (error) {
-      logger.error('Garbage collection failed', { error: error.message });
+      logger.error('Garbage collection failed', { error: error instanceof Error ? error.message : 'Unknown error' });
     }
   }
 
@@ -359,20 +359,29 @@ export class MemoryOptimizer extends EventEmitter {
   /**
    * Get current memory statistics
    */
-  public getStats(): MemoryStats & { 
-    poolCount: number; 
+  public getStats(): MemoryStats & {
+    poolCount: number;
     historySize: number;
     trend?: { slope: number; correlation: number };
   } {
-    const trend = this.memoryHistory.length >= 10 ? 
+    const trend = this.memoryHistory.length >= 10 ?
       this.calculateMemoryTrend(this.memoryHistory.slice(-10)) : undefined;
 
-    return {
+    const result: MemoryStats & {
+      poolCount: number;
+      historySize: number;
+      trend?: { slope: number; correlation: number };
+    } = {
       ...this.stats,
       poolCount: this.objectPools.size,
       historySize: this.memoryHistory.length,
-      trend
     };
+
+    if (trend) {
+      result.trend = trend;
+    }
+
+    return result;
   }
 
   /**

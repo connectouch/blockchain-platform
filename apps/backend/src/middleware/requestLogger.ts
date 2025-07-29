@@ -4,17 +4,14 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '@/utils/logger';
-import { envValidator } from '@/utils/envValidator';
+import { logger } from '../utils/logger';
+import { envValidator } from '../utils/envValidator';
+import { AuthenticatedUser } from './authMiddleware';
 
 interface LoggedRequest extends Request {
   id?: string;
   startTime?: number;
-  user?: {
-    id: string;
-    email?: string;
-    role?: string;
-  };
+  user?: AuthenticatedUser;
 }
 
 export const requestLogger = (req: LoggedRequest, res: Response, next: NextFunction) => {
@@ -30,7 +27,7 @@ export const requestLogger = (req: LoggedRequest, res: Response, next: NextFunct
   res.setHeader('X-Request-ID', req.id);
 
   // Log incoming request
-  const requestData = {
+  const requestData: any = {
     requestId: req.id,
     method: req.method,
     path: req.path,
@@ -80,7 +77,7 @@ export const requestLogger = (req: LoggedRequest, res: Response, next: NextFunct
 function logResponse(req: LoggedRequest, res: Response, body: any) {
   const duration = req.startTime ? Date.now() - req.startTime : 0;
   
-  const responseData = {
+  const responseData: any = {
     requestId: req.id,
     method: req.method,
     path: req.path,

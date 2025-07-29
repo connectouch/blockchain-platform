@@ -209,8 +209,10 @@ export class AIAnalysisEngine {
       }
 
       // Filter by risk tolerance
+      const riskScoreMap = { 'low': 1, 'medium': 5, 'high': 9 };
+      const protocolRiskScore = riskScoreMap[protocol.riskScore as keyof typeof riskScoreMap] || 5;
       const maxRiskScore = Math.min(preferences.riskTolerance + 2, 10);
-      return protocol.riskScore <= maxRiskScore;
+      return protocolRiskScore <= maxRiskScore;
     });
   }
 

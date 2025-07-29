@@ -3,8 +3,8 @@
  * Manages all port assignments and prevents conflicts across the platform
  */
 
-import { envConfig } from '@/utils/envValidator';
-import { logger } from '@/utils/logger';
+import { envConfig } from '../utils/envValidator';
+import { logger } from '../utils/logger';
 
 export interface PortConfig {
   backend: {
@@ -81,11 +81,12 @@ export class PortManager {
     // Collect all ports
     Object.entries(this.config).forEach(([category, ports]) => {
       Object.entries(ports).forEach(([service, port]) => {
-        if (allPorts.includes(port)) {
-          conflicts.push(`Port ${port} conflict between services`);
+        const portNum = Number(port);
+        if (allPorts.includes(portNum)) {
+          conflicts.push(`Port ${portNum} conflict between services`);
         }
-        allPorts.push(port);
-        this.reservedPorts.add(port);
+        allPorts.push(portNum);
+        this.reservedPorts.add(portNum);
       });
     });
 
@@ -253,11 +254,12 @@ LOGS_PORT=${this.config.monitoring.logs}`;
     );
 
     for (const port of allPorts) {
-      if (await this.checkPortAvailability(port)) {
-        result.available.push(port);
+      const portNum = Number(port);
+      if (await this.checkPortAvailability(portNum)) {
+        result.available.push(portNum);
       } else {
-        result.unavailable.push(port);
-        result.conflicts.push(`Port ${port} is currently in use`);
+        result.unavailable.push(portNum);
+        result.conflicts.push(`Port ${portNum} is currently in use`);
       }
     }
 

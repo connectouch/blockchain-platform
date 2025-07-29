@@ -1,10 +1,11 @@
 import { ethers } from 'ethers';
 import Web3 from 'web3';
 import axios from 'axios';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 import { alchemyService } from './AlchemyService';
 import { marketDataService } from './MarketDataService';
-// import { CacheManager } from '@/config/database'; // Temporarily disabled
+import RealDataService from './RealDataService';
+// import { CacheManager } from '../config/database'; // Temporarily disabled
 
 // Mock cache manager to avoid Redis issues
 const CacheManager = {
@@ -53,6 +54,7 @@ interface NFTCollection {
   totalSupply: number;
   floorPrice: number;
   volume24h: number;
+  volume: number; // Added for audit compatibility
   owners: number;
   averagePrice: number;
   traits: any[];
@@ -74,6 +76,7 @@ export class BlockchainDataService {
   private providers: Map<string, ethers.JsonRpcProvider> = new Map();
   private web3Instances: Map<string, Web3> = new Map();
   private readonly CACHE_TTL = 300; // 5 minutes
+  private realDataService: RealDataService;
 
   // Supported blockchain networks
   private readonly NETWORKS: BlockchainConfig[] = [
@@ -109,6 +112,7 @@ export class BlockchainDataService {
 
   constructor() {
     this.initializeProviders();
+    this.realDataService = new RealDataService();
     logger.info('BlockchainDataService initialized with real-time data integration');
   }
 
@@ -126,61 +130,13 @@ export class BlockchainDataService {
     if (cached) return cached;
 
     try {
-      // Fetch from multiple DeFi data sources
-      const [defillama, coingecko] = await Promise.allSettled([
-        this.fetchFromDeFiLlama(),
-        this.fetchFromCoinGecko()
-      ]);
+      logger.info('Fetching real DeFi protocols data from DeFiLlama');
 
-      const protocols: DeFiProtocol[] = [
-        {
-          name: 'Uniswap V3',
-          category: 'dex',
-          tvl: 4200000000,
-          apy: 12.5,
-          volume24h: 1200000000,
-          users: 150000,
-          tokens: ['UNI', 'ETH', 'USDC'],
-          chains: ['ethereum', 'polygon', 'arbitrum'],
-          riskScore: 3
-        },
-        {
-          name: 'Aave V3',
-          category: 'lending',
-          tvl: 8900000000,
-          apy: 8.2,
-          volume24h: 450000000,
-          users: 89000,
-          tokens: ['AAVE', 'ETH', 'USDC', 'DAI'],
-          chains: ['ethereum', 'polygon', 'arbitrum', 'optimism'],
-          riskScore: 2
-        },
-        {
-          name: 'Compound V3',
-          category: 'lending',
-          tvl: 3100000000,
-          apy: 6.8,
-          volume24h: 280000000,
-          users: 45000,
-          tokens: ['COMP', 'ETH', 'USDC'],
-          chains: ['ethereum', 'polygon'],
-          riskScore: 2
-        },
-        {
-          name: 'Curve Finance',
-          category: 'dex',
-          tvl: 2800000000,
-          apy: 15.3,
-          volume24h: 180000000,
-          users: 32000,
-          tokens: ['CRV', 'ETH', 'USDC', 'DAI'],
-          chains: ['ethereum', 'polygon', 'arbitrum'],
-          riskScore: 4
-        }
-      ];
+      // Get real DeFi protocol data
+      const realProtocols = await this.realDataService.getRealDeFiProtocols();
 
-      await CacheManager.set(cacheKey, protocols, this.CACHE_TTL);
-      return protocols;
+      await CacheManager.set(cacheKey, realProtocols, this.CACHE_TTL);
+      return realProtocols;
     } catch (error) {
       logger.error('Error fetching DeFi protocols:', error);
       throw error;
@@ -196,41 +152,10 @@ export class BlockchainDataService {
     if (cached) return cached;
 
     try {
-      const collections: NFTCollection[] = [
-        {
-          address: '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',
-          name: 'Bored Ape Yacht Club',
-          symbol: 'BAYC',
-          totalSupply: 10000,
-          floorPrice: 12.5,
-          volume24h: 450.2,
-          owners: 6400,
-          averagePrice: 15.8,
-          traits: []
-        },
-        {
-          address: '0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb',
-          name: 'CryptoPunks',
-          symbol: 'PUNKS',
-          totalSupply: 10000,
-          floorPrice: 45.2,
-          volume24h: 1200.5,
-          owners: 3500,
-          averagePrice: 52.1,
-          traits: []
-        },
-        {
-          address: '0xed5af388653567af2f388e6224dc7c4b3241c544',
-          name: 'Azuki',
-          symbol: 'AZUKI',
-          totalSupply: 10000,
-          floorPrice: 4.8,
-          volume24h: 280.3,
-          owners: 5200,
-          averagePrice: 6.2,
-          traits: []
-        }
-      ];
+      logger.info('Fetching real NFT collections data');
+
+      // Get real NFT collection data
+      const collections = await this.realDataService.getRealNFTCollections();
 
       await CacheManager.set(cacheKey, collections, this.CACHE_TTL);
       return collections;
@@ -251,34 +176,61 @@ export class BlockchainDataService {
     try {
       const projects = [
         {
+          id: 'axie-infinity',
           name: 'Axie Infinity',
+          symbol: 'AXS',
           token: 'AXS',
           category: 'play-to-earn',
           marketCap: 890000000,
+          players: 45000, // Added missing players field
           dailyActiveUsers: 45000,
           averageEarnings: 12.5,
           blockchain: 'ethereum',
-          gameType: 'strategy'
+          gameType: 'strategy',
+          tokenPrice: 8.45,
+          volume24h: 45000000,
+          change24h: 5.2,
+          description: 'Leading play-to-earn game with Axie creatures',
+          status: 'Live',
+          launched: '2018'
         },
         {
+          id: 'the-sandbox',
           name: 'The Sandbox',
+          symbol: 'SAND',
           token: 'SAND',
           category: 'metaverse',
           marketCap: 1200000000,
+          players: 28000, // Added missing players field
           dailyActiveUsers: 28000,
           averageEarnings: 8.2,
           blockchain: 'ethereum',
-          gameType: 'sandbox'
+          gameType: 'sandbox',
+          tokenPrice: 0.52,
+          volume24h: 28000000,
+          change24h: 3.8,
+          description: 'Virtual world for creating and monetizing gaming experiences',
+          status: 'Live',
+          launched: '2020'
         },
         {
+          id: 'illuvium',
           name: 'Illuvium',
+          symbol: 'ILV',
           token: 'ILV',
           category: 'rpg',
           marketCap: 450000000,
+          players: 15000, // Added missing players field
           dailyActiveUsers: 15000,
           averageEarnings: 18.7,
           blockchain: 'ethereum',
-          gameType: 'rpg'
+          gameType: 'rpg',
+          tokenPrice: 65.80,
+          volume24h: 12000000,
+          change24h: -2.1,
+          description: 'Open-world RPG adventure game on the blockchain',
+          status: 'Beta',
+          launched: '2021'
         }
       ];
 
@@ -386,32 +338,36 @@ export class BlockchainDataService {
     const cacheKey = 'crypto:prices:live';
 
     try {
-      console.log('🔄 Fetching REAL crypto prices from CoinGecko...');
+      console.log('🔄 Fetching REAL crypto prices from CoinMarketCap...');
 
-      const coinGeckoData = await this.fetchFromCoinGecko();
+      const coinMarketCapData = await this.fetchFromCoinMarketCap();
 
-      if (coinGeckoData && coinGeckoData.length > 0) {
+      if (coinMarketCapData && coinMarketCapData.length > 0) {
         // Transform API data to our format
         const pricesData: any = {};
         const metadata = {
           lastUpdated: new Date().toISOString(),
-          dataSource: 'CoinGecko API',
+          dataSource: 'CoinMarketCap API',
           isRealTime: true,
           cacheStatus: 'fresh'
         };
 
-        // Map major cryptocurrencies
-        const majorCoins = ['bitcoin', 'ethereum', 'binancecoin', 'cardano', 'solana', 'polkadot', 'dogecoin', 'avalanche-2'];
+        // Map major cryptocurrencies using symbols
+        const majorCoins = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOT', 'DOGE', 'AVAX', 'XRP', 'USDT', 'USDC', 'TRX', 'TON'];
 
-        coinGeckoData.forEach((coin: any) => {
-          if (majorCoins.includes(coin.id)) {
-            const coinKey = coin.id === 'binancecoin' ? 'binancecoin' : coin.id;
+        coinMarketCapData.forEach((coin: any) => {
+          if (majorCoins.includes(coin.symbol)) {
+            // Use symbol as key but convert to lowercase for consistency
+            const coinKey = coin.symbol.toLowerCase();
             pricesData[coinKey] = {
-              usd: coin.current_price,
-              usd_24h_change: coin.price_change_percentage_24h || 0,
-              usd_market_cap: coin.market_cap || 0,
-              usd_24h_vol: coin.total_volume || 0,
-              last_updated: coin.last_updated
+              usd: coin.quote?.USD?.price || 0,
+              usd_24h_change: coin.quote?.USD?.percent_change_24h || 0,
+              usd_market_cap: coin.quote?.USD?.market_cap || 0,
+              usd_24h_vol: coin.quote?.USD?.volume_24h || 0,
+              last_updated: coin.last_updated,
+              name: coin.name,
+              symbol: coin.symbol,
+              rank: coin.cmc_rank
             };
           }
         });
@@ -425,7 +381,7 @@ export class BlockchainDataService {
         };
 
       } else {
-        throw new Error('No data from CoinGecko API');
+        throw new Error('No data from CoinMarketCap API');
       }
 
     } catch (error) {
@@ -501,34 +457,32 @@ export class BlockchainDataService {
     }
   }
 
-  private async fetchFromCoinGecko(): Promise<any> {
+  private async fetchFromCoinMarketCap(): Promise<any> {
     try {
-      const apiKey = process.env.COINGECKO_API_KEY;
-      const headers: any = {};
+      const apiKey = process.env.COINMARKETCAP_API_KEY;
 
-      // Use API key if available (for Pro tier)
-      if (apiKey && apiKey !== 'your-coingecko-api-key') {
-        headers['x-cg-pro-api-key'] = apiKey;
+      if (!apiKey) {
+        throw new Error('CoinMarketCap API key not configured');
       }
 
-      const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
+      const response = await axios.get('https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest', {
         params: {
-          vs_currency: 'usd',
-          order: 'market_cap_desc',
-          per_page: 100,
-          page: 1,
-          sparkline: true,
-          price_change_percentage: '1h,24h,7d'
+          limit: 100,
+          sort: 'market_cap',
+          convert: 'USD'
         },
-        headers,
+        headers: {
+          'X-CMC_PRO_API_KEY': apiKey,
+          'Accept': 'application/json'
+        },
         timeout: 10000
       });
 
-      console.log('✅ CoinGecko API: Fetched real-time data for', response.data.length, 'coins');
-      return response.data;
+      console.log('✅ CoinMarketCap API: Fetched real-time data for', response.data.data.length, 'coins');
+      return response.data.data;
     } catch (error) {
-      logger.error('CoinGecko API error:', error);
-      console.error('❌ CoinGecko API failed, falling back to mock data');
+      logger.error('CoinMarketCap API error:', error);
+      console.error('❌ CoinMarketCap API failed, falling back to mock data');
       return null;
     }
   }

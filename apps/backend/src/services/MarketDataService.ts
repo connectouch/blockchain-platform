@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 
 /**
  * Real-Time Market Data Service
@@ -207,7 +207,7 @@ export class MarketDataService {
   /**
    * Get trending cryptocurrencies
    */
-  public async getTrendingCryptocurrencies(): Promise<any[]> {
+  public async getTrendingCryptocurrencies(): Promise<any> {
     return this.getCachedOrFetch(
       'trending',
       async () => {

@@ -12,9 +12,9 @@ import {
   UserRole, 
   Permission,
   AuthenticatedUser 
-} from '@/middleware/authMiddleware';
-import { logger } from '@/utils/logger';
-import { envValidator } from '@/utils/envValidator';
+} from '../middleware/authMiddleware';
+import { logger } from '../utils/logger';
+import { envValidator } from '../utils/envValidator';
 
 const router = express.Router();
 
@@ -77,7 +77,7 @@ const findUserByEmail = (email: string): User | undefined => {
  * POST /auth/register
  * Register a new user account
  */
-router.post('/register', authRateLimit, async (req, res) => {
+router.post('/register', authRateLimit, async (req, res): Promise<any> => {
   try {
     const { email, password, role = UserRole.USER } = req.body;
 
@@ -148,7 +148,7 @@ router.post('/register', authRateLimit, async (req, res) => {
 
   } catch (error) {
     logger.error('Registration failed', { error, body: req.body });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Registration failed',
       code: 'REGISTRATION_ERROR'
@@ -160,7 +160,7 @@ router.post('/register', authRateLimit, async (req, res) => {
  * POST /auth/login
  * Authenticate user and return JWT token
  */
-router.post('/login', authRateLimit, async (req, res) => {
+router.post('/login', authRateLimit, async (req, res): Promise<any> => {
   try {
     const { email, password } = req.body;
 
@@ -224,7 +224,7 @@ router.post('/login', authRateLimit, async (req, res) => {
 
   } catch (error) {
     logger.error('Login failed', { error, body: req.body });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Login failed',
       code: 'LOGIN_ERROR'
@@ -236,7 +236,7 @@ router.post('/login', authRateLimit, async (req, res) => {
  * POST /auth/refresh
  * Refresh JWT token
  */
-router.post('/refresh', authenticateJWT, (req, res) => {
+router.post('/refresh', authenticateJWT, (req, res): any => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -265,7 +265,7 @@ router.post('/refresh', authenticateJWT, (req, res) => {
 
   } catch (error) {
     logger.error('Token refresh failed', { error, userId: req.user?.id });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Token refresh failed',
       code: 'REFRESH_ERROR'
@@ -277,7 +277,7 @@ router.post('/refresh', authenticateJWT, (req, res) => {
  * GET /auth/me
  * Get current user information
  */
-router.get('/me', authenticateJWT, (req, res) => {
+router.get('/me', authenticateJWT, (req, res): any => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
@@ -307,7 +307,7 @@ router.get('/me', authenticateJWT, (req, res) => {
  * POST /auth/logout
  * Logout user (client-side token removal)
  */
-router.post('/logout', authenticateJWT, (req, res) => {
+router.post('/logout', authenticateJWT, (req, res): any => {
   logger.info('User logged out', { userId: req.user?.id });
   
   res.json({
@@ -320,7 +320,7 @@ router.post('/logout', authenticateJWT, (req, res) => {
  * GET /auth/status
  * Check authentication status
  */
-router.get('/status', (req, res) => {
+router.get('/status', (req, res): any => {
   res.json({
     success: true,
     data: {

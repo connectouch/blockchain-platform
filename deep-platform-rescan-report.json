@@ -1,0 +1,225 @@
+{
+  "summary": {
+    "criticalIssues": 0,
+    "highIssues": 0,
+    "mediumIssues": 0,
+    "warnings": 9,
+    "scanTimestamp": "2025-07-27T19:10:43.844Z"
+  },
+  "issues": [],
+  "warnings": [
+    {
+      "category": "API",
+      "description": "Blockchain Overview: Moderate response time: 1499ms",
+      "recommendation": "Consider performance optimization",
+      "timestamp": "2025-07-27T19:10:41.405Z"
+    },
+    {
+      "category": "Security",
+      "description": "Permissive CORS policy detected",
+      "recommendation": "Restrict CORS to specific domains in production",
+      "timestamp": "2025-07-27T19:10:42.778Z"
+    },
+    {
+      "category": "Data Integrity",
+      "description": "Data inconsistency detected between requests",
+      "recommendation": "Implement proper caching or data versioning",
+      "timestamp": "2025-07-27T19:10:43.806Z"
+    },
+    {
+      "category": "User Experience",
+      "description": "/: No loading indicators detected",
+      "recommendation": "Add loading states for better user experience",
+      "timestamp": "2025-07-27T19:10:43.836Z"
+    },
+    {
+      "category": "User Experience",
+      "description": "/: No error state handling detected",
+      "recommendation": "Add error states and retry mechanisms",
+      "timestamp": "2025-07-27T19:10:43.836Z"
+    },
+    {
+      "category": "User Experience",
+      "description": "/defi: No loading indicators detected",
+      "recommendation": "Add loading states for better user experience",
+      "timestamp": "2025-07-27T19:10:43.840Z"
+    },
+    {
+      "category": "User Experience",
+      "description": "/defi: No error state handling detected",
+      "recommendation": "Add error states and retry mechanisms",
+      "timestamp": "2025-07-27T19:10:43.840Z"
+    },
+    {
+      "category": "User Experience",
+      "description": "/infrastructure: No loading indicators detected",
+      "recommendation": "Add loading states for better user experience",
+      "timestamp": "2025-07-27T19:10:43.844Z"
+    },
+    {
+      "category": "User Experience",
+      "description": "/infrastructure: No error state handling detected",
+      "recommendation": "Add error states and retry mechanisms",
+      "timestamp": "2025-07-27T19:10:43.844Z"
+    }
+  ],
+  "scanResults": {
+    "apiEndpoints": {
+      "Blockchain Overview": {
+        "status": "success",
+        "responseTime": "1499ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [
+          {
+            "description": "Moderate response time: 1499ms",
+            "recommendation": "Consider performance optimization"
+          }
+        ],
+        "dataQuality": "good"
+      },
+      "Infrastructure Projects": {
+        "status": "success",
+        "responseTime": "10ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      },
+      "DeFi Protocols": {
+        "status": "success",
+        "responseTime": "968ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      },
+      "GameFi Projects": {
+        "status": "success",
+        "responseTime": "8ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      },
+      "DAO Projects": {
+        "status": "success",
+        "responseTime": "7ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      },
+      "NFT Collections": {
+        "status": "success",
+        "responseTime": "8ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      },
+      "Web3 Tools": {
+        "status": "success",
+        "responseTime": "5ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      },
+      "Market Overview": {
+        "status": "success",
+        "responseTime": "8ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      },
+      "Live Prices": {
+        "status": "success",
+        "responseTime": "278ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      },
+      "Blockchain Status": {
+        "status": "success",
+        "responseTime": "8ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      },
+      "Health Check": {
+        "status": "success",
+        "responseTime": "6ms",
+        "statusCode": 200,
+        "issues": [],
+        "warnings": [],
+        "dataQuality": "good"
+      }
+    },
+    "frontendPages": {
+      "Dashboard": {
+        "status": "success",
+        "loadTime": "5ms",
+        "issues": [],
+        "warnings": [],
+        "contentAnalysis": {}
+      },
+      "DeFi Page": {
+        "status": "success",
+        "loadTime": "5ms",
+        "issues": [],
+        "warnings": [],
+        "contentAnalysis": {}
+      },
+      "Infrastructure Page": {
+        "status": "success",
+        "loadTime": "3ms",
+        "issues": [],
+        "warnings": [],
+        "contentAnalysis": {}
+      },
+      "GameFi Page": {
+        "status": "success",
+        "loadTime": "4ms",
+        "issues": [],
+        "warnings": [],
+        "contentAnalysis": {}
+      },
+      "NFT Page": {
+        "status": "success",
+        "loadTime": "5ms",
+        "issues": [],
+        "warnings": [],
+        "contentAnalysis": {}
+      },
+      "DAO Page": {
+        "status": "success",
+        "loadTime": "4ms",
+        "issues": [],
+        "warnings": [],
+        "contentAnalysis": {}
+      },
+      "Web3 Tools Page": {
+        "status": "success",
+        "loadTime": "4ms",
+        "issues": [],
+        "warnings": [],
+        "contentAnalysis": {}
+      }
+    },
+    "performance": {
+      "averageResponseTime": "6ms",
+      "maxResponseTime": "7ms",
+      "minResponseTime": "4ms",
+      "variance": "3ms",
+      "consistency": "Good"
+    },
+    "security": {},
+    "dataIntegrity": {},
+    "errorHandling": {},
+    "userExperience": {}
+  }
+}

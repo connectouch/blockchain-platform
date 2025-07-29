@@ -24,7 +24,6 @@ declare global {
     interface Request {
       id?: string;
       startTime?: number;
-      user?: any;
       rateLimit?: {
         limit: number;
         current: number;
@@ -38,6 +37,7 @@ declare global {
 // Import services and configurations
 import { dbManager } from './config/database';
 import comprehensiveBlockchainAIRoutes from './routes/comprehensive-blockchain-ai';
+import PrefetchService from './services/PrefetchService';
 
 /**
  * Enterprise-grade Connectouch Blockchain AI Platform Server
@@ -61,6 +61,7 @@ class ConnectouchServer {
   private server: any;
   private readonly PORT = parseInt(envConfig.PORT || '3007');
   private readonly NODE_ENV = envConfig.NODE_ENV;
+  private prefetchService: PrefetchService;
 
   constructor() {
     // Initialize global error handlers
@@ -68,6 +69,9 @@ class ConnectouchServer {
 
     // Create Express app
     this.app = express();
+
+    // Initialize prefetch service for real-time data
+    this.prefetchService = new PrefetchService();
 
     // Basic middleware setup
     this.setupMiddleware();
@@ -80,11 +84,30 @@ class ConnectouchServer {
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-    // CORS
+    // Security headers
     this.app.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('X-XSS-Protection', '1; mode=block');
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+      next();
+    });
+
+    // CORS with security improvements
+    this.app.use((req, res, next) => {
+      const allowedOrigins = this.NODE_ENV === 'production'
+        ? ['https://connectouch.com']
+        : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5175'];
+
+      const origin = req.headers.origin;
+      if (allowedOrigins.includes(origin as string) || this.NODE_ENV !== 'production') {
+        res.header('Access-Control-Allow-Origin', origin || '*');
+      }
+
       res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      res.header('Access-Control-Allow-Credentials', 'true');
 
       if (req.method === 'OPTIONS') {
         res.sendStatus(200);
@@ -107,18 +130,29 @@ class ConnectouchServer {
     // Health check
     this.app.get('/health', (req, res) => {
       res.json({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        service: 'connectouch-backend',
-        version: '2.0.0',
-        port: this.PORT,
-        environment: this.NODE_ENV
+        success: true, // Added success field for audit compatibility
+        data: {
+          status: 'healthy',
+          timestamp: new Date().toISOString(),
+          service: 'connectouch-backend',
+          version: '2.0.0',
+          port: this.PORT,
+          environment: this.NODE_ENV
+        }
       });
     });
 
     // API routes
     this.app.use('/api/auth', authRoutes);
     this.app.use('/api/v2/blockchain', comprehensiveBlockchainAIRoutes);
+
+    // External API health check routes
+    const externalRoutes = require('./routes/v2/external');
+    this.app.use('/api/v2/external', externalRoutes);
+
+    // AI Intelligence routes
+    const aiIntelligenceRoutes = require('./routes/ai-intelligence').default;
+    this.app.use('/api/v2/ai', aiIntelligenceRoutes);
 
     // Root endpoint
     this.app.get('/', (req, res) => {
@@ -181,6 +215,10 @@ class ConnectouchServer {
         logger.info(`✅ Health check: http://127.0.0.1:${this.PORT}/health`);
         logger.info(`📊 API documentation: http://127.0.0.1:${this.PORT}/api`);
         logger.info(`🎯 Server ready for connections!`);
+
+        // Start prefetch service for real-time data
+        this.prefetchService.start();
+        logger.info(`🔄 Prefetch service started - real data will be cached automatically`);
       });
 
       this.server.on('error', (err: any) => {

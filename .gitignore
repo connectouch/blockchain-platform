@@ -137,3 +137,6 @@ temp/
 test-results/
 playwright-report/
 test-results.xml
+
+# Local Netlify folder
+.netlify

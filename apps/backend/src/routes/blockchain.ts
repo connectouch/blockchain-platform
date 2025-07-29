@@ -11,7 +11,7 @@ const blockchainService = new BlockchainService();
  * GET /api/blockchain/status
  * Get blockchain network status and contract information
  */
-router.get('/status', async (req, res) => {
+router.get('/status', async (req, res): Promise<any> => {
   try {
     logger.info('Fetching blockchain status');
     
@@ -60,7 +60,7 @@ router.get('/status', async (req, res) => {
  * POST /api/blockchain/register-user
  * Register a new user on the blockchain
  */
-router.post('/register-user', async (req, res) => {
+router.post('/register-user', async (req, res): Promise<any> => {
   try {
     const { username, riskTolerance, investmentAmount, userAddress } = req.body;
 
@@ -119,7 +119,7 @@ router.post('/register-user', async (req, res) => {
  * POST /api/blockchain/create-strategy
  * Create a new strategy on the blockchain
  */
-router.post('/create-strategy', async (req, res) => {
+router.post('/create-strategy', async (req, res): Promise<any> => {
   try {
     const { name, description, riskLevel, protocols } = req.body;
 
@@ -185,7 +185,7 @@ router.post('/create-strategy', async (req, res) => {
  * GET /api/blockchain/user/:address
  * Get user profile from blockchain
  */
-router.get('/user/:address', async (req, res) => {
+router.get('/user/:address', async (req, res): Promise<any> => {
   try {
     const { address } = req.params;
 
@@ -220,7 +220,7 @@ router.get('/user/:address', async (req, res) => {
  * GET /api/blockchain/strategy/:id
  * Get strategy details from blockchain
  */
-router.get('/strategy/:id', async (req, res) => {
+router.get('/strategy/:id', async (req, res): Promise<any> => {
   try {
     const { id } = req.params;
     const strategyId = parseInt(id);
@@ -256,7 +256,7 @@ router.get('/strategy/:id', async (req, res) => {
  * POST /api/blockchain/estimate-gas
  * Estimate gas costs for user registration
  */
-router.post('/estimate-gas', async (req, res) => {
+router.post('/estimate-gas', async (req, res): Promise<any> => {
   try {
     const { username, riskTolerance, investmentAmount } = req.body;
 
@@ -296,7 +296,7 @@ router.post('/estimate-gas', async (req, res) => {
  * GET /api/blockchain/gas-prices
  * Get current gas prices
  */
-router.get('/gas-prices', async (req, res) => {
+router.get('/gas-prices', async (req, res): Promise<any> => {
   try {
     logger.info('Fetching current gas prices');
 
@@ -322,7 +322,7 @@ router.get('/gas-prices', async (req, res) => {
  * GET /api/blockchain/test
  * Test blockchain connectivity
  */
-router.get('/test', async (req, res) => {
+router.get('/test', async (req, res): Promise<any> => {
   try {
     logger.info('Testing blockchain connectivity');
 

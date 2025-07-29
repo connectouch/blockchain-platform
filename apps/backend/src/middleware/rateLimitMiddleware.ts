@@ -5,8 +5,8 @@
 
 import rateLimit from 'express-rate-limit';
 import { Request, Response } from 'express';
-import { logger } from '@/utils/logger';
-import { envConfig } from '@/utils/envValidator';
+import { logger } from '../utils/logger';
+import { envConfig } from '../utils/envValidator';
 
 export interface RateLimitConfig {
   windowMs?: number;
@@ -24,7 +24,7 @@ export const createRateLimiter = (config: RateLimitConfig = {}) => {
     message: 'Too many requests from this IP, please try again later',
     skipSuccessfulRequests: false,
     skipFailedRequests: false,
-    keyGenerator: (req: Request) => req.ip
+    keyGenerator: (req: Request) => req.ip || 'unknown'
   };
 
   const finalConfig = { ...defaultConfig, ...config };

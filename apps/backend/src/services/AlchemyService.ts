@@ -1,6 +1,6 @@
 import { Alchemy, Network, AlchemySubscription } from 'alchemy-sdk';
 import { ethers } from 'ethers';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 
 /**
  * Alchemy Blockchain Service
@@ -18,7 +18,7 @@ export interface BlockchainNetwork {
 export interface TokenBalance {
   contractAddress: string;
   tokenBalance: string;
-  error?: string;
+  error: string;
 }
 
 export interface NFTMetadata {
@@ -138,7 +138,7 @@ export class AlchemyService {
     try {
       const alchemy = this.getAlchemyInstance(network);
       const balance = await alchemy.core.getBalance(address, 'latest');
-      return ethers.formatEther(balance);
+      return ethers.formatEther(balance.toString());
     } catch (error) {
       logger.error(`Error getting ETH balance for ${address}:`, error);
       throw error;
@@ -159,7 +159,7 @@ export class AlchemyService {
       return balances.tokenBalances.map(balance => ({
         contractAddress: balance.contractAddress,
         tokenBalance: balance.tokenBalance || '0',
-        error: balance.error
+        error: balance.error || ''
       }));
     } catch (error) {
       logger.error(`Error getting token balances for ${address}:`, error);
@@ -191,14 +191,14 @@ export class AlchemyService {
             tokenType: nft.tokenType || 'ERC721'
           }
         },
-        title: nft.title || '',
+        title: (nft as any).title || '',
         description: nft.description || '',
         tokenUri: {
-          raw: nft.tokenUri?.raw || '',
-          gateway: nft.tokenUri?.gateway || ''
+          raw: (nft.tokenUri as any)?.raw || '',
+          gateway: (nft.tokenUri as any)?.gateway || ''
         },
-        media: nft.media || [],
-        metadata: nft.metadata,
+        media: (nft as any).media || [],
+        metadata: (nft as any).metadata,
         timeLastUpdated: nft.timeLastUpdated || new Date().toISOString()
       }));
     } catch (error) {
@@ -222,7 +222,7 @@ export class AlchemyService {
         fromAddress: address,
         fromBlock: fromBlock || '0x0',
         toBlock: toBlock || 'latest',
-        category: ['external', 'internal', 'erc20', 'erc721', 'erc1155'],
+        category: ['external' as any, 'internal' as any, 'erc20' as any, 'erc721' as any, 'erc1155' as any],
         maxCount: 100
       });
 
@@ -254,10 +254,10 @@ export class AlchemyService {
       const feeData = await alchemy.core.getFeeData();
       
       return {
-        gasPrice: ethers.formatUnits(gasPrice, 'gwei'),
-        maxFeePerGas: feeData.maxFeePerGas ? ethers.formatUnits(feeData.maxFeePerGas, 'gwei') : null,
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ? ethers.formatUnits(feeData.maxPriorityFeePerGas, 'gwei') : null,
-        lastBaseFeePerGas: feeData.lastBaseFeePerGas ? ethers.formatUnits(feeData.lastBaseFeePerGas, 'gwei') : null
+        gasPrice: ethers.formatUnits(gasPrice.toString(), 'gwei'),
+        maxFeePerGas: feeData.maxFeePerGas ? ethers.formatUnits(feeData.maxFeePerGas.toString(), 'gwei') : null,
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ? ethers.formatUnits(feeData.maxPriorityFeePerGas.toString(), 'gwei') : null,
+        lastBaseFeePerGas: feeData.lastBaseFeePerGas ? ethers.formatUnits(feeData.lastBaseFeePerGas.toString(), 'gwei') : null
       };
     } catch (error) {
       logger.error(`Error getting gas prices for ${network}:`, error);

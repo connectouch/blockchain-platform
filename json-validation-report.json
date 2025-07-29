@@ -1,0 +1,164 @@
+{
+  "summary": {
+    "validEndpoints": 11,
+    "invalidEndpoints": 0,
+    "timestamp": "2025-07-27T19:51:26.743Z"
+  },
+  "validEndpoints": [
+    {
+      "endpoint": "/api/v2/blockchain/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 200,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/api/v2/blockchain/infrastructure/projects",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 200,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/api/v2/blockchain/defi/protocols",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 200,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/api/v2/blockchain/gamefi/projects",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 200,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/api/v2/blockchain/dao/projects",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 200,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/api/v2/blockchain/nft/collections",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 200,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/api/v2/blockchain/tools/list",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 200,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/api/v2/blockchain/market/overview",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 200,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/api/v2/blockchain/prices/live",
+      "status": 429,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 429,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/api/v2/blockchain/status",
+      "status": 429,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 429,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    },
+    {
+      "endpoint": "/health",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "analysis": {
+        "isValidJSON": true,
+        "hasCorrectContentType": true,
+        "hasSuccessField": true,
+        "statusCode": 200,
+        "contentType": "application/json; charset=utf-8",
+        "error": null,
+        "warnings": []
+      }
+    }
+  ],
+  "invalidEndpoints": []
+}

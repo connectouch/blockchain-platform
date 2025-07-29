@@ -5,8 +5,8 @@
 
 import cors from 'cors';
 import { Request, Response, NextFunction } from 'express';
-import { envValidator, envConfig } from '@/utils/envValidator';
-import { logger } from '@/utils/logger';
+import { envValidator, envConfig } from '../utils/envValidator';
+import { logger } from '../utils/logger';
 
 export interface CorsOptions {
   allowedOrigins?: string[];

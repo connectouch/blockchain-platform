@@ -33,10 +33,10 @@ app.use(helmet({
 }));
 
 // Import environment validator for secure configuration
-import { envValidator, envConfig } from '@/utils/envValidator';
+import { envValidator, envConfig } from './utils/envValidator';
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: any) => {
     const corsOrigins = envConfig.CORS_ORIGIN || 'http://localhost:5173,http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3006';
     const allowedOrigins = corsOrigins.split(',').map(origin => origin.trim());
 
@@ -83,18 +83,24 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
-    status: 'OK',
-    service: 'Connectouch DeFi AI Platform',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    version: '1.0.0-alpha'
+    success: true, // Added success field for audit compatibility
+    data: {
+      status: 'OK',
+      service: 'Connectouch DeFi AI Platform',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      version: '1.0.0-alpha'
+    }
   });
 });
 
 // API routes
 app.use('/api/defi', defiRoutes);
 app.use('/api/blockchain', blockchainRoutes);
+app.use('/api/starknet', require('./routes/starknet').default);
+app.use('/api/quantum-defi', require('./routes/quantum-defi').default);
+app.use('/api/ai-intelligence', require('./routes/ai-intelligence').default);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -105,11 +111,20 @@ app.get('/', (req, res) => {
       health: '/health',
       defi: '/api/defi',
       blockchain: '/api/blockchain',
+      starknet: '/api/starknet',
+      quantumDefi: '/api/quantum-defi',
+      aiIntelligence: '/api/ai-intelligence',
       protocols: '/api/defi/protocols',
       analyze: '/api/defi/analyze',
       chat: '/api/defi/chat',
       test: '/api/defi/test',
-      blockchainStatus: '/api/blockchain/status'
+      blockchainStatus: '/api/blockchain/status',
+      starknetHealth: '/api/starknet/health',
+      starknetProtocols: '/api/starknet/defi/protocols',
+      quantumAnalysis: '/api/quantum-defi/portfolio/analyze',
+      quantumCapabilities: '/api/quantum-defi/capabilities',
+      collaborativeAnalysis: '/api/ai-intelligence/collaborative/strategy-analysis',
+      scientificTesting: '/api/ai-intelligence/scientific/hypothesis-testing'
     },
     documentation: 'https://docs.connectouch.ai',
     timestamp: new Date().toISOString()

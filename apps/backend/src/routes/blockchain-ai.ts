@@ -9,7 +9,7 @@ const blockchainAIService = new BlockchainAIService();
  * GET /api/blockchain-ai/overview
  * Get comprehensive blockchain ecosystem overview
  */
-router.get('/overview', async (req, res) => {
+router.get('/overview', async (req, res): Promise<any> => {
   try {
     logger.info('Fetching blockchain ecosystem overview');
     
@@ -87,7 +87,7 @@ router.get('/overview', async (req, res) => {
  * POST /api/blockchain-ai/analyze-nft
  * Analyze NFT collection with AI
  */
-router.post('/analyze-nft', async (req, res) => {
+router.post('/analyze-nft', async (req, res): Promise<any> => {
   try {
     const { collectionData } = req.body;
     
@@ -120,7 +120,7 @@ router.post('/analyze-nft', async (req, res) => {
  * POST /api/blockchain-ai/analyze-gamefi
  * Analyze GameFi project with AI
  */
-router.post('/analyze-gamefi', async (req, res) => {
+router.post('/analyze-gamefi', async (req, res): Promise<any> => {
   try {
     const { gameData } = req.body;
     
@@ -153,7 +153,7 @@ router.post('/analyze-gamefi', async (req, res) => {
  * POST /api/blockchain-ai/analyze-dao
  * Analyze DAO with AI
  */
-router.post('/analyze-dao', async (req, res) => {
+router.post('/analyze-dao', async (req, res): Promise<any> => {
   try {
     const { daoData } = req.body;
     
@@ -186,7 +186,7 @@ router.post('/analyze-dao', async (req, res) => {
  * POST /api/blockchain-ai/analyze-contract
  * Analyze smart contract security with AI
  */
-router.post('/analyze-contract', async (req, res) => {
+router.post('/analyze-contract', async (req, res): Promise<any> => {
   try {
     const { contractCode, contractAddress } = req.body;
     
@@ -219,7 +219,7 @@ router.post('/analyze-contract', async (req, res) => {
  * POST /api/blockchain-ai/analyze-portfolio
  * Analyze cross-chain portfolio with AI
  */
-router.post('/analyze-portfolio', async (req, res) => {
+router.post('/analyze-portfolio', async (req, res): Promise<any> => {
   try {
     const { portfolioData } = req.body;
     
@@ -252,7 +252,7 @@ router.post('/analyze-portfolio', async (req, res) => {
  * POST /api/blockchain-ai/web3-guidance
  * Get Web3 development guidance with AI
  */
-router.post('/web3-guidance', async (req, res) => {
+router.post('/web3-guidance', async (req, res): Promise<any> => {
   try {
     const { projectData } = req.body;
     
@@ -285,7 +285,7 @@ router.post('/web3-guidance', async (req, res) => {
  * GET /api/blockchain-ai/market-analysis
  * Get comprehensive blockchain market analysis
  */
-router.get('/market-analysis', async (req, res) => {
+router.get('/market-analysis', async (req, res): Promise<any> => {
   try {
     logger.info('Generating comprehensive market analysis');
     
@@ -309,7 +309,7 @@ router.get('/market-analysis', async (req, res) => {
  * GET /api/blockchain-ai/trending
  * Get trending blockchain projects and opportunities
  */
-router.get('/trending', async (req, res) => {
+router.get('/trending', async (req, res): Promise<any> => {
   try {
     logger.info('Fetching trending blockchain projects');
     

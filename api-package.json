@@ -1,0 +1,32 @@
+{
+  "name": "connectouch-realtime-api",
+  "version": "2.0.0",
+  "description": "Real-time API server for Connectouch Blockchain AI Platform",
+  "main": "real-time-api-server.js",
+  "scripts": {
+    "start": "node real-time-api-server.js",
+    "dev": "nodemon real-time-api-server.js",
+    "test": "node test-platform-fixes.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "blockchain",
+    "cryptocurrency",
+    "api",
+    "real-time",
+    "defi",
+    "nft"
+  ],
+  "author": "Connectouch",
+  "license": "MIT"
+}

@@ -1,5 +1,5 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 import BlockchainDataService from './BlockchainDataService';
 
 interface CandlestickData {

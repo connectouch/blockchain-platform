@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "nodemon src/server.ts",
     "build": "tsc",
+    "build:production": "tsc --project tsconfig.production.json",
     "start": "node dist/server.js",
+    "start:production": "NODE_ENV=production node dist/server.js",
     "start:legacy": "node server.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -53,6 +55,7 @@
     "redis": "^5.6.0",
     "sharp": "^0.33.1",
     "socket.io": "^4.7.4",
+    "starknet": "^7.6.4",
     "tsconfig-paths": "^4.2.0",
     "uuid": "^9.0.1",
     "vite": "^7.0.4",

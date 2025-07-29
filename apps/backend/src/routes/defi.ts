@@ -16,7 +16,7 @@ const openAIService = new OpenAIService();
  * GET /api/defi/protocols
  * Get all available DeFi protocols with real-time data
  */
-router.get('/protocols', async (req, res) => {
+router.get('/protocols', async (req, res): Promise<any> => {
   try {
     logger.info('Fetching DeFi protocols data');
     
@@ -43,7 +43,7 @@ router.get('/protocols', async (req, res) => {
  * GET /api/defi/market-conditions
  * Get current market conditions and sentiment
  */
-router.get('/market-conditions', async (req, res) => {
+router.get('/market-conditions', async (req, res): Promise<any> => {
   try {
     logger.info('Fetching market conditions');
     
@@ -69,7 +69,7 @@ router.get('/market-conditions', async (req, res) => {
  * POST /api/defi/analyze
  * Generate AI-powered portfolio analysis
  */
-router.post('/analyze', async (req, res) => {
+router.post('/analyze', async (req, res): Promise<any> => {
   try {
     const { portfolioValue, userPreferences } = req.body;
 
@@ -133,7 +133,7 @@ router.post('/analyze', async (req, res) => {
  * POST /api/defi/chat
  * Chat with AI about DeFi strategies and questions
  */
-router.post('/chat', async (req, res) => {
+router.post('/chat', async (req, res): Promise<any> => {
   try {
     const { message, conversationHistory } = req.body;
 
@@ -173,7 +173,7 @@ router.post('/chat', async (req, res) => {
  * POST /api/defi/risk-assessment
  * Assess portfolio risk with current market conditions
  */
-router.post('/risk-assessment', async (req, res) => {
+router.post('/risk-assessment', async (req, res): Promise<any> => {
   try {
     const { positions, userPreferences } = req.body;
 
@@ -218,7 +218,7 @@ router.post('/risk-assessment', async (req, res) => {
  * GET /api/defi/strategy-updates
  * Get real-time strategy updates based on market conditions
  */
-router.get('/strategy-updates', async (req, res) => {
+router.get('/strategy-updates', async (req, res): Promise<any> => {
   try {
     logger.info('Fetching strategy updates');
     
@@ -248,7 +248,7 @@ router.get('/strategy-updates', async (req, res) => {
  * GET /api/defi/test
  * Test all DeFi services connectivity
  */
-router.get('/test', async (req, res) => {
+router.get('/test', async (req, res): Promise<any> => {
   try {
     logger.info('Testing DeFi services');
     
@@ -289,7 +289,7 @@ router.get('/test', async (req, res) => {
  * POST /api/defi/explain-strategy
  * Get natural language explanation of a strategy
  */
-router.post('/explain-strategy', async (req, res) => {
+router.post('/explain-strategy', async (req, res): Promise<any> => {
   try {
     const { strategy, userQuery } = req.body;
 

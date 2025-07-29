@@ -1,0 +1,89 @@
+# Supabase Configuration for Connectouch Blockchain AI Platform
+
+project_id = "connectouch-blockchain-ai"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54324
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["https://connectouch-blockchain-ai.netlify.app"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+security_update_password_require_reauthentication = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[auth.sms]
+enable_signup = false
+
+[auth.external.github]
+enabled = false
+
+[auth.external.google]
+enabled = false
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[realtime]
+enabled = true
+port = 54323
+ip_version = "ipv4"
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost:54321"
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+port = 54325
+file_size_limit = "50MiB"
+image_transformation = true
+
+[edge_functions]
+enabled = true
+port = 54326
+inspector_port = 54327
+
+[analytics]
+enabled = false
+
+[functions.crypto-prices]
+verify_jwt = false
+
+[functions.defi-protocols]
+verify_jwt = false
+
+[functions.ai-analysis]
+verify_jwt = true
+
+[functions.portfolio-sync]
+verify_jwt = true
+
+[functions.health-check]
+verify_jwt = false
+
+[functions.market-overview]
+verify_jwt = false
+
+[functions.real-time-updates]
+verify_jwt = false

@@ -1,0 +1,174 @@
+{
+  "apiEndpoints": {
+    "Blockchain Overview": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "2483ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 1,
+      "issues": []
+    },
+    "Infrastructure Projects": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "10ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 3,
+      "issues": []
+    },
+    "DeFi Protocols": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "1259ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 4,
+      "issues": []
+    },
+    "GameFi Projects": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "15ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 3,
+      "issues": []
+    },
+    "DAO Projects": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "19ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 3,
+      "issues": []
+    },
+    "NFT Collections": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "17ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 3,
+      "issues": []
+    },
+    "Web3 Tools": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "19ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 5,
+      "issues": []
+    },
+    "Market Overview": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "14ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 1,
+      "issues": []
+    },
+    "Live Prices": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "494ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 1,
+      "issues": []
+    },
+    "Health Check": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "16ms",
+      "dataStructure": "non-standard",
+      "dataValidation": "unknown",
+      "recordCount": 0,
+      "issues": [
+        "Response missing success field"
+      ]
+    },
+    "Blockchain Status": {
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": "13ms",
+      "dataStructure": "standard",
+      "dataValidation": "valid",
+      "recordCount": 1,
+      "issues": []
+    }
+  },
+  "frontendPages": {
+    "Dashboard": {
+      "status": "success",
+      "responseTime": "73ms",
+      "hasContent": true,
+      "hasErrorBoundary": false,
+      "contentValidation": {},
+      "issues": []
+    },
+    "DeFi Page": {
+      "status": "success",
+      "responseTime": "4476ms",
+      "hasContent": true,
+      "hasErrorBoundary": false,
+      "contentValidation": {},
+      "issues": []
+    },
+    "Infrastructure Page": {
+      "status": "success",
+      "responseTime": "23ms",
+      "hasContent": true,
+      "hasErrorBoundary": false,
+      "contentValidation": {},
+      "issues": []
+    },
+    "GameFi Page": {
+      "status": "success",
+      "responseTime": "18ms",
+      "hasContent": true,
+      "hasErrorBoundary": false,
+      "contentValidation": {},
+      "issues": []
+    },
+    "NFT Page": {
+      "status": "success",
+      "responseTime": "17ms",
+      "hasContent": true,
+      "hasErrorBoundary": false,
+      "contentValidation": {},
+      "issues": []
+    },
+    "DAO Page": {
+      "status": "success",
+      "responseTime": "12ms",
+      "hasContent": true,
+      "hasErrorBoundary": false,
+      "contentValidation": {},
+      "issues": []
+    },
+    "Web3 Tools Page": {
+      "status": "success",
+      "responseTime": "14ms",
+      "hasContent": true,
+      "hasErrorBoundary": false,
+      "contentValidation": {},
+      "issues": []
+    }
+  },
+  "dataFlowValidation": {},
+  "errorHandling": {},
+  "crossPlatformTests": {},
+  "summary": {
+    "totalEndpoints": 11,
+    "workingEndpoints": 11,
+    "totalPages": 7,
+    "workingPages": 7,
+    "criticalIssues": [],
+    "recommendations": []
+  }
+}

@@ -4,10 +4,10 @@
  */
 
 import { EventEmitter } from 'events';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 import { memoryOptimizer } from './MemoryOptimizer';
 import { cacheService } from './CacheService';
-import { dbManager } from '@/config/database';
+import { dbManager } from '../config/database';
 
 export interface SystemMetrics {
   timestamp: string;
@@ -191,7 +191,7 @@ export class MonitoringService extends EventEmitter {
         },
         cpu: {
           usage: this.getCPUUsage(),
-          loadAverage: process.loadavg ? process.loadavg() : [0, 0, 0]
+          loadAverage: (process as any).loadavg ? (process as any).loadavg() : [0, 0, 0]
         },
         database: {
           connected: dbHealth.overall === 'healthy',
@@ -203,7 +203,7 @@ export class MonitoringService extends EventEmitter {
           hits: cacheStats.hits,
           misses: cacheStats.misses,
           hitRate: cacheStats.hitRate,
-          size: cacheStats.cacheSize
+          size: (cacheStats as any).cacheSize || 0
         },
         api: {
           totalRequests: this.apiMetrics.totalRequests,
@@ -231,9 +231,10 @@ export class MonitoringService extends EventEmitter {
       });
 
     } catch (error) {
-      logger.error('Failed to collect metrics', { error: error.message });
-      this.createAlert('error', 'Metrics Collection Failed', 
-        'Failed to collect system metrics', 'monitoring', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to collect metrics', { error: errorMessage });
+      this.createAlert('error', 'Metrics Collection Failed',
+        'Failed to collect system metrics', 'monitoring', { error: errorMessage });
     }
   }
 

@@ -11,19 +11,17 @@ export interface EnvConfig {
   OPENAI_API_KEY: string;
   NODE_ENV: string;
   PORT: string;
-  
+
   // Optional but recommended
   DATABASE_URL?: string;
   REDIS_URL?: string;
   JWT_SECRET?: string;
   SESSION_SECRET?: string;
-  
-  // External API keys (optional)
+
+  // Approved external API keys (only 3 services)
   ALCHEMY_API_KEY?: string;
-  COINGECKO_API_KEY?: string;
-  ETHERSCAN_API_KEY?: string;
-  THE_GRAPH_API_KEY?: string;
-  
+  COINMARKETCAP_API_KEY?: string;
+
   // Security configuration
   CORS_ORIGIN?: string;
   RATE_LIMIT_WINDOW_MS?: string;
@@ -96,9 +94,13 @@ export class EnvironmentValidator {
       warnings.push('REDIS_URL not set - caching features will be disabled');
     }
 
-    // Validate API keys format
+    // Validate approved API keys format
     if (process.env.ALCHEMY_API_KEY && !this.isValidAlchemyKey(process.env.ALCHEMY_API_KEY)) {
-      warnings.push('ALCHEMY_API_KEY format appears invalid');
+      warnings.push('ALCHEMY_API_KEY format appears invalid. Should start with "alcht_"');
+    }
+
+    if (process.env.COINMARKETCAP_API_KEY && !this.isValidCoinMarketCapKey(process.env.COINMARKETCAP_API_KEY)) {
+      warnings.push('COINMARKETCAP_API_KEY format appears invalid. Should be a valid UUID');
     }
 
     // Validate port configurations
@@ -128,10 +130,11 @@ export class EnvironmentValidator {
       REDIS_URL: process.env.REDIS_URL,
       JWT_SECRET: process.env.JWT_SECRET || this.generateSecureDefault('jwt'),
       SESSION_SECRET: process.env.SESSION_SECRET || this.generateSecureDefault('session'),
+
+      // Only approved external API keys (3 services)
       ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY,
-      COINGECKO_API_KEY: process.env.COINGECKO_API_KEY,
-      ETHERSCAN_API_KEY: process.env.ETHERSCAN_API_KEY,
-      THE_GRAPH_API_KEY: process.env.THE_GRAPH_API_KEY,
+      COINMARKETCAP_API_KEY: process.env.COINMARKETCAP_API_KEY,
+
       CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:3000',
       RATE_LIMIT_WINDOW_MS: process.env.RATE_LIMIT_WINDOW_MS || '900000',
       RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS || '100',
@@ -156,6 +159,12 @@ export class EnvironmentValidator {
 
   private isValidAlchemyKey(key: string): boolean {
     return key.startsWith('alcht_') && key.length > 20;
+  }
+
+  private isValidCoinMarketCapKey(key: string): boolean {
+    // CoinMarketCap API keys are typically UUIDs
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(key);
   }
 
   private validatePorts(): { errors: string[]; warnings: string[] } {

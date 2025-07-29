@@ -44,13 +44,32 @@ class NetworkHealthService extends EventEmitter {
       }
     });
 
-    this.services.set('coingecko', {
-      name: 'CoinGecko API',
-      url: 'https://api.coingecko.com/api/v3/ping',
+    this.services.set('coinmarketcap', {
+      name: 'CoinMarketCap API',
+      url: 'https://pro-api.coinmarketcap.com/v1/key/info',
       timeout: 8000,
       healthy: false,
       lastCheck: null,
-      errorCount: 0
+      errorCount: 0,
+      headers: {
+        'X-CMC_PRO_API_KEY': process.env.COINMARKETCAP_API_KEY
+      }
+    });
+
+    this.services.set('alchemy', {
+      name: 'Alchemy API',
+      url: 'https://eth-mainnet.g.alchemy.com/v2/' + process.env.ALCHEMY_API_KEY,
+      timeout: 8000,
+      healthy: false,
+      lastCheck: null,
+      errorCount: 0,
+      method: 'POST',
+      data: {
+        jsonrpc: '2.0',
+        method: 'eth_blockNumber',
+        params: [],
+        id: 1
+      }
     });
 
     this.services.set('defillama', {

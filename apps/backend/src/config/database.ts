@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { createClient } from 'redis';
-import { logger } from '@/utils/logger';
-import { envValidator, envConfig } from '@/utils/envValidator';
-import { queryOptimizer } from '@/utils/queryOptimizer';
+import { logger } from '../utils/logger';
+import { envValidator, envConfig } from '../utils/envValidator';
+import { queryOptimizer } from '../utils/queryOptimizer';
 
 /**
  * Enterprise-grade Database Configuration
@@ -37,7 +37,7 @@ export const prisma = envValidator.hasDatabase() ? new PrismaClient({
   errorFormat: 'pretty',
   datasources: {
     db: {
-      url: envConfig.DATABASE_URL
+      url: envConfig.DATABASE_URL || 'postgresql://localhost:5432/connectouch'
     }
   },
   // Performance optimizations
@@ -49,7 +49,7 @@ export const prisma = envValidator.hasDatabase() ? new PrismaClient({
 
 // Enhanced logging for database operations with performance monitoring
 if (prisma) {
-  prisma.$on('query', (e: any) => {
+  (prisma as any).$on('query', (e: any) => {
     const duration = parseInt(e.duration);
 
     // Log slow queries
@@ -69,7 +69,7 @@ if (prisma) {
     }
   });
 
-  prisma.$on('error', (e: any) => {
+  (prisma as any).$on('error', (e: any) => {
     logger.error('Database Error', {
       message: e.message,
       target: e.target,
@@ -77,14 +77,14 @@ if (prisma) {
     });
   });
 
-  prisma.$on('info', (e: any) => {
+  (prisma as any).$on('info', (e: any) => {
     logger.info('Database Info', {
       message: e.message,
       target: e.target
     });
   });
 
-  prisma.$on('warn', (e: any) => {
+  (prisma as any).$on('warn', (e: any) => {
     logger.warn('Database Warning', {
       message: e.message,
       target: e.target
@@ -98,15 +98,7 @@ export const redisClient = envValidator.hasRedis() ? createClient({
   socket: {
     reconnectStrategy: (retries) => Math.min(retries * 50, 500),
     connectTimeout: 60000,
-    commandTimeout: 5000,
-    lazyConnect: true,
-  },
-  // Performance optimizations
-  commandsQueueMaxLength: 1000,
-  maxRetriesPerRequest: 3,
-  retryDelayOnFailover: 100,
-  enableReadyCheck: true,
-  maxLoadingTimeout: 5000,
+  }
 }) : null;
 
 // Redis event handlers
@@ -228,8 +220,8 @@ export class DatabaseManager {
     overall: string;
   }> {
     const health = {
-      postgres: { status: 'disabled', enabled: false, latency: undefined as number | undefined },
-      redis: { status: 'disabled', enabled: false, latency: undefined as number | undefined },
+      postgres: { status: 'disabled', enabled: false } as { status: string; enabled: boolean; latency?: number },
+      redis: { status: 'disabled', enabled: false } as { status: string; enabled: boolean; latency?: number },
       overall: 'healthy'
     };
 

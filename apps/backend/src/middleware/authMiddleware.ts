@@ -3,10 +3,10 @@
  * Implements JWT-based authentication with role-based access control
  */
 
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { envConfig } from '@/utils/envValidator';
-import { logger } from '@/utils/logger';
+import { envConfig } from '../utils/envValidator';
+import { logger } from '../utils/logger';
 
 // Extend Express Request interface to include user
 declare global {
@@ -20,7 +20,7 @@ declare global {
 
 export interface AuthenticatedUser {
   id: string;
-  email?: string;
+  email: string;
   role: UserRole;
   permissions: Permission[];
   iat?: number;
@@ -66,8 +66,8 @@ export class AuthenticationManager {
   private jwtExpiry: string;
 
   private constructor() {
-    this.jwtSecret = envConfig.JWT_SECRET || 'fallback-secret-key';
-    this.jwtExpiry = process.env.JWT_EXPIRY || '24h';
+    this.jwtSecret = (envConfig.JWT_SECRET || 'fallback-secret-key') as string;
+    this.jwtExpiry = (process.env.JWT_EXPIRY || '24h') as string;
   }
 
   public static getInstance(): AuthenticationManager {
@@ -79,6 +79,12 @@ export class AuthenticationManager {
 
   public generateToken(user: Omit<AuthenticatedUser, 'iat' | 'exp'>): string {
     try {
+      const options: SignOptions = {
+        expiresIn: this.jwtExpiry as any,
+        issuer: 'connectouch-platform',
+        audience: 'connectouch-api'
+      };
+
       return jwt.sign(
         {
           id: user.id,
@@ -86,12 +92,8 @@ export class AuthenticationManager {
           role: user.role,
           permissions: user.permissions
         },
-        this.jwtSecret,
-        {
-          expiresIn: this.jwtExpiry,
-          issuer: 'connectouch-platform',
-          audience: 'connectouch-api'
-        }
+        this.jwtSecret as string,
+        options
       );
     } catch (error) {
       logger.error('Token generation failed', { error, userId: user.id });
@@ -156,7 +158,7 @@ export class AuthenticationManager {
     }
   }
 
-  public createUser(id: string, email?: string, role: UserRole = UserRole.USER): AuthenticatedUser {
+  public createUser(id: string, email: string, role: UserRole = UserRole.USER): AuthenticatedUser {
     return {
       id,
       email,
@@ -170,16 +172,17 @@ export class AuthenticationManager {
 export const authManager = AuthenticationManager.getInstance();
 
 // JWT Authentication Middleware
-export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
+export const authenticateJWT = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (!token) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       error: 'Access token required',
       code: 'NO_TOKEN'
     });
+    return;
   }
 
   try {
@@ -194,48 +197,50 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
     
     next();
   } catch (error) {
-    logger.warn('Authentication failed', { 
+    logger.warn('Authentication failed', {
       error: error instanceof Error ? error.message : 'Unknown error',
-      token: token.substring(0, 10) + '...',
+      token: token ? token.substring(0, 10) + '...' : 'undefined',
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
 
-    return res.status(403).json({
+    res.status(403).json({
       success: false,
       error: error instanceof Error ? error.message : 'Authentication failed',
       code: 'AUTH_FAILED'
     });
+    return;
   }
 };
 
 // API Key Authentication Middleware (for external integrations)
-export const authenticateAPIKey = (req: Request, res: Response, next: NextFunction) => {
+export const authenticateAPIKey = (req: Request, res: Response, next: NextFunction): void => {
   const apiKey = req.headers['x-api-key'] as string;
 
   if (!apiKey) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       error: 'API key required',
       code: 'NO_API_KEY'
     });
+    return;
   }
 
   // In a real implementation, validate against database
   // For now, create a basic API client user
-  req.user = authManager.createUser(`api-client-${Date.now()}`, undefined, UserRole.API_CLIENT);
+  req.user = authManager.createUser(`api-client-${Date.now()}`, `api-client-${Date.now()}@connectouch.ai`, UserRole.API_CLIENT);
   req.apiKey = apiKey;
 
-  logger.debug('API key authenticated', { 
+  logger.debug('API key authenticated', {
     apiKey: apiKey.substring(0, 8) + '...',
-    endpoint: req.path 
+    endpoint: req.path
   });
 
   next();
 };
 
 // Optional Authentication (allows both authenticated and anonymous access)
-export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
+export const optionalAuth = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
   const apiKey = req.headers['x-api-key'] as string;
@@ -248,7 +253,7 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
       logger.debug('Optional auth failed, proceeding anonymously', { error });
     }
   } else if (apiKey) {
-    req.user = authManager.createUser(`api-client-${Date.now()}`, undefined, UserRole.API_CLIENT);
+    req.user = authManager.createUser(`api-client-${Date.now()}`, `api-client-${Date.now()}@connectouch.ai`, UserRole.API_CLIENT);
     req.apiKey = apiKey;
   }
 
@@ -257,13 +262,14 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
 
 // Permission-based Authorization Middleware
 export const requirePermission = (permission: Permission) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: 'Authentication required',
         code: 'AUTH_REQUIRED'
       });
+      return;
     }
 
     if (!req.user.permissions.includes(permission)) {
@@ -275,12 +281,13 @@ export const requirePermission = (permission: Permission) => {
         endpoint: req.path
       });
 
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         error: 'Insufficient permissions',
         code: 'PERMISSION_DENIED',
         required: permission
       });
+      return;
     }
 
     next();
@@ -289,23 +296,25 @@ export const requirePermission = (permission: Permission) => {
 
 // Role-based Authorization Middleware
 export const requireRole = (role: UserRole) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: 'Authentication required',
         code: 'AUTH_REQUIRED'
       });
+      return;
     }
 
     if (req.user.role !== role && req.user.role !== UserRole.ADMIN) {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         error: 'Insufficient role privileges',
         code: 'ROLE_DENIED',
         required: role,
         current: req.user.role
       });
+      return;
     }
 
     next();

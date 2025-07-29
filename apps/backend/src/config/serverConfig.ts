@@ -11,10 +11,10 @@ import rateLimit from 'express-rate-limit';
 import { createServer, Server } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 
-import { logger } from '@/utils/logger';
-import { envValidator, envConfig } from '@/utils/envValidator';
-import { secureCorsMiddleware, corsSecurityHeaders } from '@/middleware/corsMiddleware';
-import { PORTS } from '@/config/ports';
+import { logger } from '../utils/logger';
+import { envValidator, envConfig } from '../utils/envValidator';
+import { secureCorsMiddleware, corsSecurityHeaders } from '../middleware/corsMiddleware';
+import { PORTS } from '../config/ports';
 
 export interface ServerOptions {
   enableWebSocket?: boolean;
@@ -225,37 +225,24 @@ export class ServerConfigManager {
   }
 
   public addHealthEndpoint(app: Application, serverInfo: ServerInfo): void {
-    app.get('/health', async (req, res) => {
-      try {
-        const health = {
-          status: 'healthy',
-          timestamp: new Date().toISOString(),
-          uptime: process.uptime(),
-          memory: process.memoryUsage(),
-          server: {
-            name: serverInfo.name,
-            version: serverInfo.version,
-            environment: serverInfo.environment,
-            port: serverInfo.port
-          },
-          system: {
-            nodeVersion: process.version,
-            platform: process.platform,
-            arch: process.arch
-          }
-        };
+    app.get('/health', (req, res) => {
+      // Ultra-fast health check - no async operations, no external calls
+      const health = {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: Math.floor(process.uptime()),
+        server: {
+          name: serverInfo.name,
+          version: serverInfo.version,
+          environment: serverInfo.environment,
+          port: serverInfo.port
+        }
+      };
 
-        res.json({
-          success: true,
-          data: health
-        });
-      } catch (error) {
-        logger.error('Health check failed:', error);
-        res.status(503).json({
-          success: false,
-          error: 'Health check failed'
-        });
-      }
+      res.json({
+        success: true,
+        data: health
+      });
     });
   }
 

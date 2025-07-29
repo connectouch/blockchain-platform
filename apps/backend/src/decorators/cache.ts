@@ -3,8 +3,8 @@
  * Easy-to-use decorators for method caching
  */
 
-import { cacheService, CacheOptions } from '@/services/CacheService';
-import { logger } from '@/utils/logger';
+import { cacheService, CacheOptions } from '../services/CacheService';
+import { logger } from '../utils/logger';
 import { createHash } from 'crypto';
 
 /**
@@ -36,7 +36,7 @@ export function Cacheable(options: CacheOptions & { keyPrefix?: string } = {}) {
         return result;
 
       } catch (error) {
-        logger.error('Cache decorator error', { method: propertyName, error: error.message });
+        logger.error('Cache decorator error', { method: propertyName, error: error instanceof Error ? error.message : 'Unknown error' });
         // Fallback to original method
         return method.apply(this, args);
       }
@@ -83,7 +83,7 @@ export function CacheEvict(options: { tags?: string[]; keys?: string[]; all?: bo
         return result;
 
       } catch (error) {
-        logger.error('Cache evict decorator error', { method: propertyName, error: error.message });
+        logger.error('Cache evict decorator error', { method: propertyName, error: error instanceof Error ? error.message : 'Unknown error' });
         throw error;
       }
     };
@@ -114,7 +114,7 @@ export function CacheWarm(options: CacheOptions & { keyPrefix?: string } = {}) {
         return result;
 
       } catch (error) {
-        logger.error('Cache warm decorator error', { method: propertyName, error: error.message });
+        logger.error('Cache warm decorator error', { method: propertyName, error: error instanceof Error ? error.message : 'Unknown error' });
         throw error;
       }
     };
