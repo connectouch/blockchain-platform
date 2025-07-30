@@ -385,10 +385,10 @@ const DAOPage: React.FC = () => {
         )}
 
         {/* DAO Projects Grid */}
-        {!isLoading && !error && daos.length > 0 && (
+        {!isLoading && !error && [].length > 0 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              {daos.map((dao: any, index: number) => (
+              {[].map((dao: any, index: number) => (
                 <motion.div
                   key={dao.name}
                   initial={{ opacity: 0, y: 20 }}
@@ -465,7 +465,7 @@ const DAOPage: React.FC = () => {
                   <DollarSign className="w-12 h-12 text-green-400 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2">Total Treasury</h3>
                   <p className="text-3xl font-bold text-green-400">
-                    ${(daos.reduce((sum: number, d: any) => sum + (d.treasuryValue || 0), 0) / 1e9).toFixed(1)}B
+                    ${([].reduce((sum: number, d: any) => sum + (d.treasuryValue || 0), 0) / 1e9).toFixed(1)}B
                   </p>
                 </div>
 
@@ -473,7 +473,7 @@ const DAOPage: React.FC = () => {
                   <Users className="w-12 h-12 text-blue-400 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2">Total Members</h3>
                   <p className="text-3xl font-bold text-blue-400">
-                    {(daos.reduce((sum: number, d: any) => sum + (d.members || 0), 0) / 1000).toFixed(0)}K
+                    {([].reduce((sum: number, d: any) => sum + (d.members || 0), 0) / 1000).toFixed(0)}K
                   </p>
                 </div>
 
@@ -481,14 +481,14 @@ const DAOPage: React.FC = () => {
                   <Vote className="w-12 h-12 text-purple-400 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2">Total Proposals</h3>
                   <p className="text-3xl font-bold text-purple-400">
-                    {daos.reduce((sum: number, d: any) => sum + (d.proposals || 0), 0)}
+                    {[].reduce((sum: number, d: any) => sum + (d.proposals || 0), 0)}
                   </p>
                 </div>
 
                 <div className="glass-card p-6 text-center">
                   <Activity className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2">Active DAOs</h3>
-                  <p className="text-3xl font-bold text-yellow-400">{daos.length}</p>
+                  <p className="text-3xl font-bold text-yellow-400">{[].length}</p>
                 </div>
               </div>
             </motion.div>

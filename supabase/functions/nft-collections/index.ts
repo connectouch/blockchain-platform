@@ -9,6 +9,101 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper function to get NFT image from Alchemy API
+async function getNFTImageFromAlchemy(contractAddress: string, tokenId: string): Promise<string> {
+  const ALCHEMY_API_KEY = Deno.env.get('ALCHEMY_API_KEY') || 'alcht_4VtVtdF68sMtNaLupR7oPQ1wDSFNc4';
+
+  try {
+    const response = await fetch(`https://eth-mainnet.g.alchemy.com/nft/v2/${ALCHEMY_API_KEY}/getNFTMetadata?contractAddress=${contractAddress}&tokenId=${tokenId}`);
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.metadata?.image) {
+        let imageUrl = data.metadata.image;
+        // Handle IPFS URLs
+        if (imageUrl.startsWith('ipfs://')) {
+          imageUrl = imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/');
+        }
+        return imageUrl;
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch NFT image for ${contractAddress}:${tokenId}:`, error);
+  }
+
+  // Generate fallback SVG image
+  return generateNFTFallbackImage(contractAddress, tokenId);
+}
+
+// Generate enhanced fallback NFT collection image
+function generateNFTFallbackImage(contractAddress: string, tokenId: string, collectionName: string = 'NFT'): string {
+  const colors = [
+    '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b',
+    '#ef4444', '#ec4899', '#3b82f6', '#10b981'
+  ];
+  const color = colors[parseInt(tokenId) % colors.length];
+  const shortAddress = contractAddress.slice(-4);
+  const initials = collectionName.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase();
+  const size = 300;
+  const padding = size * 0.1;
+  const innerSize = size - (padding * 2);
+
+  return `data:image/svg+xml,${encodeURIComponent(`
+    <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="collectionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${color};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${color}dd;stop-opacity:1" />
+        </linearGradient>
+        <filter id="collectionShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="3" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.4)"/>
+        </filter>
+      </defs>
+
+      <!-- Background with gradient -->
+      <rect width="${size}" height="${size}" fill="url(#collectionGrad)" rx="${size * 0.08}" filter="url(#collectionShadow)"/>
+
+      <!-- Inner decorative frame -->
+      <rect x="${padding}" y="${padding}" width="${innerSize}" height="${innerSize}"
+            fill="none" stroke="white" stroke-width="3" rx="${innerSize * 0.06}" opacity="0.8"/>
+
+      <!-- Crown icon for collection -->
+      <g transform="translate(${size/2 - 20}, ${size/2 - 50})" fill="white" opacity="0.9">
+        <path d="M8 2L12 8L16 2L20 8L24 2L22 18H10L8 2Z" stroke="white" stroke-width="2"/>
+      </g>
+
+      <!-- Collection initials -->
+      <text x="${size/2}" y="${size/2 + 5}" text-anchor="middle" fill="white"
+            font-family="Arial, sans-serif" font-size="28" font-weight="bold" opacity="0.95">
+        ${initials}
+      </text>
+
+      <!-- Collection label -->
+      <text x="${size/2}" y="${size/2 + 35}" text-anchor="middle" fill="white"
+            font-family="Arial, sans-serif" font-size="14" opacity="0.8">
+        Collection
+      </text>
+
+      <!-- Contract address -->
+      <text x="${size/2}" y="${size - padding/2}" text-anchor="middle" fill="white"
+            font-family="monospace" font-size="12" opacity="0.6">
+        ${shortAddress}
+      </text>
+
+      <!-- Decorative elements -->
+      <circle cx="${padding + 12}" cy="${padding + 12}" r="4" fill="white" opacity="0.6"/>
+      <circle cx="${size - padding - 12}" cy="${padding + 12}" r="4" fill="white" opacity="0.6"/>
+      <circle cx="${padding + 12}" cy="${size - padding - 12}" r="4" fill="white" opacity="0.6"/>
+      <circle cx="${size - padding - 12}" cy="${size - padding - 12}" r="4" fill="white" opacity="0.6"/>
+
+      <!-- Central decorative pattern -->
+      <circle cx="${size/2}" cy="${size/2 - 80}" r="3" fill="white" opacity="0.5"/>
+      <circle cx="${size/2 - 15}" cy="${size/2 - 75}" r="2" fill="white" opacity="0.4"/>
+      <circle cx="${size/2 + 15}" cy="${size/2 - 75}" r="2" fill="white" opacity="0.4"/>
+    </svg>
+  `)}`
+}
+
 interface NFTCollection {
   id: string
   name: string
@@ -92,7 +187,7 @@ serve(async (req) => {
         sales24h: 89,
         chain: 'ethereum',
         verified: true,
-        image: '/api/placeholder/300/300',
+        image: generateNFTFallbackImage('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', '1', 'Bored Ape Yacht Club'),
         description: 'A collection of 10,000 unique Bored Ape NFTs',
         rarityEnabled: true,
         traits: []
@@ -112,7 +207,7 @@ serve(async (req) => {
         sales24h: 34,
         chain: 'ethereum',
         verified: true,
-        image: '/api/placeholder/300/300',
+        image: generateNFTFallbackImage('0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb', '1', 'CryptoPunks'),
         description: 'The original NFT collection on Ethereum',
         rarityEnabled: true,
         traits: []
@@ -132,7 +227,7 @@ serve(async (req) => {
         sales24h: 156,
         chain: 'ethereum',
         verified: true,
-        image: '/api/placeholder/300/300',
+        image: generateNFTFallbackImage('0xed5af388653567af2f388e6224dc7c4b3241c544', '1', 'Azuki'),
         description: 'A brand for the metaverse built by Chiru Labs',
         rarityEnabled: true,
         traits: []
@@ -152,7 +247,7 @@ serve(async (req) => {
         sales24h: 67,
         chain: 'ethereum',
         verified: true,
-        image: '/api/placeholder/300/300',
+        image: generateNFTFallbackImage('0x8a90cab2b38dba80c64b7734e58ee1db38b8992e', '1', 'Doodles'),
         description: 'A community-driven collectibles project',
         rarityEnabled: true,
         traits: []
@@ -172,7 +267,7 @@ serve(async (req) => {
         sales24h: 45,
         chain: 'ethereum',
         verified: true,
-        image: '/api/placeholder/300/300',
+        image: generateNFTFallbackImage('0x23581767a106ae21c074b2276d25e5c3e136a68b', '1', 'Moonbirds'),
         description: 'A collection of 10,000 utility-enabled PFPs',
         rarityEnabled: true,
         traits: []

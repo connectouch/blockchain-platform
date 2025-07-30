@@ -20,7 +20,7 @@ export interface DatabaseConfig {
     url: string
     maxRetries: number
     retryDelay: number
-    commandTimeout: number
+    // commandTimeout: number
   }
   fallback: {
     enabled: boolean
@@ -70,7 +70,7 @@ export class EnhancedDatabaseService {
         url: process.env.REDIS_URL || 'redis://localhost:6379',
         maxRetries: 3,
         retryDelay: 1000,
-        commandTimeout: 5000
+        // commandTimeout: 5000
       },
       fallback: {
         enabled: true,
@@ -189,7 +189,7 @@ export class EnhancedDatabaseService {
             return Math.min(retries * this.config.redis.retryDelay, 5000)
           },
           connectTimeout: this.config.redis.commandTimeout,
-          commandTimeout: this.config.redis.commandTimeout
+          // commandTimeout: this.config.redis.commandTimeout
         }
       })
 

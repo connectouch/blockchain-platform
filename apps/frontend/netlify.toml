@@ -1,32 +1,81 @@
 
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "npm run build:production"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--production"
 
 [functions]
   directory = "netlify/functions"
 
+# Optimize build performance
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+# Enable compression
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Encoding = "gzip"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Encoding = "gzip"
+
+[[headers]]
+  for = "*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [[redirects]]
   from = "/api/health-check"
-  to = "/.netlify/functions/health-check"
+  to = "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/health-check"
   status = 200
   force = true
 
 [[redirects]]
   from = "/api/crypto-prices"
-  to = "/.netlify/functions/crypto-prices"
+  to = "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/crypto-prices"
   status = 200
   force = true
 
 [[redirects]]
   from = "/api/nft-collections"
-  to = "/.netlify/functions/nft-collections"
+  to = "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/nft-collections"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/ai-analysis"
+  to = "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/ai-analysis"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/live-prices"
+  to = "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/live-prices"
   status = 200
   force = true
 
 [[redirects]]
   from = "/health"
-  to = "/.netlify/functions/health-check"
+  to = "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/health-check"
   status = 200
   force = true
 

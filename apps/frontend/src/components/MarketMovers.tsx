@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Zap, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Zap,
   DollarSign,
   Volume2,
   RefreshCw,
@@ -11,6 +11,7 @@ import {
   Crown,
   Target
 } from 'lucide-react'
+import { CryptoLocalImage } from './ui/LocalImage'
 
 interface MarketMover {
   id: string
@@ -56,7 +57,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
   const [activeTab, setActiveTab] = useState<'gainers' | 'losers' | 'volume'>('gainers')
 
   // Fetch market movers data
-  const fetchMarketMovers = async () => {
+  const fetchMarketMovers = () => {
     try {
       setError(null)
       
@@ -74,7 +75,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
           reason: 'AI partnership announcement',
           category: 'gainer',
           rank: 1,
-          image: 'https://via.placeholder.com/32x32/10B981/FFFFFF?text=R'
+          image: null // Will use LocalImage component
         },
         {
           id: '2',
@@ -88,7 +89,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
           reason: 'Major DeFi protocol migration',
           category: 'gainer',
           rank: 2,
-          image: 'https://via.placeholder.com/32x32/3B82F6/FFFFFF?text=A'
+          image: null // Will use LocalImage component
         },
         {
           id: '3',
@@ -102,7 +103,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
           reason: 'Viral social media campaign',
           category: 'gainer',
           rank: 3,
-          image: 'https://via.placeholder.com/32x32/10B981/FFFFFF?text=🐸'
+          image: null // Will use LocalImage component
         }
       ]
 
@@ -119,7 +120,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
           reason: 'Regulatory concerns resurface',
           category: 'loser',
           rank: 1,
-          image: 'https://via.placeholder.com/32x32/EF4444/FFFFFF?text=L'
+          image: null // Will use LocalImage component
         },
         {
           id: '5',
@@ -133,7 +134,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
           reason: 'Exchange bankruptcy proceedings',
           category: 'loser',
           rank: 2,
-          image: 'https://via.placeholder.com/32x32/EF4444/FFFFFF?text=F'
+          image: null // Will use LocalImage component
         },
         {
           id: '6',
@@ -147,7 +148,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
           reason: 'Technical issues reported',
           category: 'loser',
           rank: 3,
-          image: 'https://via.placeholder.com/32x32/EF4444/FFFFFF?text=I'
+          image: null // Will use LocalImage component
         }
       ]
 
@@ -164,7 +165,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
           reason: 'ETF inflow surge',
           category: 'volume',
           rank: 1,
-          image: 'https://via.placeholder.com/32x32/F59E0B/FFFFFF?text=₿'
+          image: null // Will use LocalImage component
         },
         {
           id: '8',
@@ -178,7 +179,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
           reason: 'Layer 2 activity spike',
           category: 'volume',
           rank: 2,
-          image: 'https://via.placeholder.com/32x32/8B5CF6/FFFFFF?text=Ξ'
+          image: null // Will use LocalImage component
         },
         {
           id: '9',
@@ -192,7 +193,7 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
           reason: 'Memecoin trading frenzy',
           category: 'volume',
           rank: 3,
-          image: 'https://via.placeholder.com/32x32/10B981/FFFFFF?text=◎'
+          image: 'SOL'
         }
       ]
 
@@ -338,13 +339,12 @@ const MarketMovers: React.FC<MarketMoversProps> = ({
             >
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  {mover.image && (
-                    <img 
-                      src={mover.image} 
-                      alt={mover.symbol}
-                      className="w-8 h-8 rounded-full"
-                    />
-                  )}
+                  <CryptoLocalImage
+                    identifier={mover.symbol}
+                    alt={`${mover.symbol} logo`}
+                    size="md"
+                    className="w-8 h-8 rounded-full"
+                  />
                   {mover.rank === 1 && (
                     <Crown className="w-3 h-3 text-yellow-400 absolute -top-1 -right-1" />
                   )}

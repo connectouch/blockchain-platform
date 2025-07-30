@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { Gamepad2, TrendingUp, Users, DollarSign, Activity } from 'lucide-react'
 import { directApiService } from '../services/directApiService'
 import LoadingSpinner from '@components/LoadingSpinner'
 import { useAIContext } from '../contexts/AIAssistantContext'
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
 
 // Rich Content Components for GameFi
 import GameAnalytics from '../components/GameAnalytics'
@@ -15,10 +16,39 @@ import GameFiEducationalHub from '../components/GameFiEducationalHub'
 
 const GameFiPage: React.FC = () => {
   const { setAIContext } = useAIContext()
+  const [realTimeGameFiData, setRealTimeGameFiData] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(new Date())
 
   // Set AI context for GameFi page
   useEffect(() => {
     setAIContext('gamefi', { page: 'gamefi', projects: [] })
+  }, [])
+
+  // Initialize real-time GameFi data
+  useEffect(() => {
+    const initializeRealTimeData = async () => {
+      try {
+        await comprehensiveRealTimeService.initialize()
+
+        // Set up real-time GameFi data listener
+        comprehensiveRealTimeService.on('gamefiUpdated', (gamefiProjects) => {
+          setRealTimeGameFiData(gamefiProjects)
+          setLastUpdate(new Date())
+        })
+
+        // Get initial data
+        const initialProjects = comprehensiveRealTimeService.getGameFiProjects()
+        setRealTimeGameFiData(initialProjects)
+      } catch (error) {
+        console.warn('Real-time GameFi data initialization failed:', error)
+      }
+    }
+
+    initializeRealTimeData()
+
+    return () => {
+      comprehensiveRealTimeService.removeAllListeners()
+    }
   }, [])
   // Fetch GameFi projects data using direct API service
   const { data: projects = [], isLoading, error } = useQuery({
@@ -62,6 +92,54 @@ const GameFiPage: React.FC = () => {
               <p className="text-white/70">Unable to fetch project data. Please try again later.</p>
             </div>
           </div>
+        )}
+
+        {/* Real-Time GameFi Data Section */}
+        {realTimeGameFiData.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Real-Time GameFi Metrics</h3>
+                <span className="text-sm text-green-400">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Total Market Cap</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${(realTimeGameFiData.reduce((sum, p) => sum + p.marketCap, 0) / 1e9).toFixed(2)}B
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Active Players</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeGameFiData.reduce((sum, p) => sum + p.players, 0) / 1e6).toFixed(1)}M
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">24h Revenue</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${(realTimeGameFiData.reduce((sum, p) => sum + p.revenue24h, 0) / 1e6).toFixed(1)}M
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Top Game</p>
+                  <p className="text-lg font-bold text-white">
+                    {realTimeGameFiData.sort((a, b) => b.marketCap - a.marketCap)[0]?.name.slice(0, 12)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
 
         {/* Enhanced GameFi Content */}

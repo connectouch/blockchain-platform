@@ -1,0 +1,76 @@
+# Vercel ignore file - exclude unnecessary files from deployment
+
+# Node modules
+node_modules/
+apps/frontend/node_modules/
+apps/backend/node_modules/
+
+# Build artifacts (except the dist we want)
+apps/backend/dist/
+apps/backend/build/
+
+# Development files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files (will be set in Vercel dashboard)
+.env
+.env.local
+.env.development
+.env.test
+
+# Git
+.git/
+.gitignore
+
+# Documentation (not needed for deployment)
+*.md
+docs/
+
+# Test files
+__tests__/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Coverage reports
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# Lock files (npm will regenerate)
+package-lock.json
+yarn.lock
+
+# Source maps (not needed in production)
+*.map
+
+# Large assets that aren't needed
+*.psd
+*.ai
+*.sketch
+
+# Backend files (not needed for frontend deployment)
+apps/backend/
+supabase/
+
+# Deployment scripts
+deploy-*.js
+migrate-*.md
+railway-*.md
+hybrid-*.md
+
+# Other platforms' config
+netlify.toml
+railway.json

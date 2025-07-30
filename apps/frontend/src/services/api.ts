@@ -128,7 +128,7 @@ const createApiInstance = (): AxiosInstance => {
         timestamp: new Date()
       }
 
-      await errorHandlingService.handleError(error, context)
+      await console.error(error, context)
       return Promise.reject(error)
     }
   )

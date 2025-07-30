@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, X, Minimize2, Maximize2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, X, Minimize2, Maximize2 } from 'lucide-react'
+import { CryptoLocalImage } from './ui/LocalImage';
 import { directApiService } from '../services/directApiService';
 
 interface CryptoPrice {
@@ -152,6 +153,12 @@ const RunningPriceTicker: React.FC<RunningPriceTickerProps> = ({
     // Create the ticker items - duplicate for seamless loop
     const tickerItems = [...prices, ...prices, ...prices].map((crypto, index) => (
       <div key={`${crypto.symbol}-${index}`} className="flex items-center space-x-3 mx-8">
+        <CryptoLocalImage
+          identifier={crypto.symbol}
+          alt={`${crypto.symbol} logo`}
+          size="sm"
+          className="w-6 h-6"
+        />
         <span className="font-bold text-white text-lg">
           {crypto.symbol}
         </span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Globe,
@@ -20,11 +20,14 @@ import CrossChainAnalytics from '../components/CrossChainAnalytics'
 import BridgeIntegrationHub from '../components/BridgeIntegrationHub'
 import ChainSelector from '../components/ChainSelector'
 import MultiChainService from '../services/MultiChainService'
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
 
 const MultiChainPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'analytics' | 'bridges' | 'portfolio' | 'defi'>('analytics')
   const [selectedChain, setSelectedChain] = useState('ethereum')
   const [selectedChains, setSelectedChains] = useState(['ethereum', 'polygon', 'bsc'])
+  const [realTimeMultiChainData, setRealTimeMultiChainData] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(new Date())
   const [multiChainStats] = useState({
     totalChains: 5,
     totalTVL: 125000000000,
@@ -42,6 +45,33 @@ const MultiChainPage: React.FC = () => {
     avalanche: '0x4567...8901',
     solana: 'ABC123...DEF456'
   })
+
+  // Initialize real-time multi-chain data
+  useEffect(() => {
+    const initializeRealTimeData = async () => {
+      try {
+        await comprehensiveRealTimeService.initialize()
+
+        // Set up real-time multi-chain data listener
+        comprehensiveRealTimeService.on('multiChainUpdated', (multiChainData) => {
+          setRealTimeMultiChainData(multiChainData)
+          setLastUpdate(new Date())
+        })
+
+        // Get initial data
+        const initialData = comprehensiveRealTimeService.getMultiChainData()
+        setRealTimeMultiChainData(initialData)
+      } catch (error) {
+        console.warn('Real-time multi-chain data initialization failed:', error)
+      }
+    }
+
+    initializeRealTimeData()
+
+    return () => {
+      comprehensiveRealTimeService.removeAllListeners()
+    }
+  }, [])
 
   // const multiChainService = MultiChainService.getInstance()
 
@@ -87,6 +117,52 @@ const MultiChainPage: React.FC = () => {
             Comprehensive multi-blockchain analytics, portfolio tracking, and cross-chain operations
           </p>
         </motion.div>
+
+        {/* Real-Time Multi-Chain Data Section */}
+        {realTimeMultiChainData.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Real-Time Multi-Chain Metrics</h3>
+                <span className="text-sm text-green-400">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Bridge Fees</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${(realTimeMultiChainData.reduce((sum, c) => sum + c.bridgeFee, 0)).toFixed(2)}
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Active Networks</p>
+                  <p className="text-2xl font-bold text-white">{realTimeMultiChainData.length}</p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Avg Gas Price</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeMultiChainData.reduce((sum, c) => sum + c.gasPrice, 0) / realTimeMultiChainData.length).toFixed(0)} gwei
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Network Health</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeMultiChainData.reduce((sum, c) => sum + c.healthScore, 0) / realTimeMultiChainData.length).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Multi-Chain Statistics */}
         <motion.div

@@ -225,7 +225,7 @@ export const useFloatingAI = (): FloatingAIContextType => {
         currentFeature: 'dashboard',
         contextData: null,
         isAIEnabled: false,
-        capabilities: {
+        aiCapabilities: {
           canAnalyze: false,
           canTrade: false,
           canPredict: false,

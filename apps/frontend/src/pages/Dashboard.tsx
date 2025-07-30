@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useMutation } from '@tanstack/react-query'
 import { useAIContext } from '../contexts/AIAssistantContext'
 import {
   BarChart3,
@@ -9,9 +10,6 @@ import {
   Users,
   Wifi,
   WifiOff,
-  Settings,
-  Maximize2,
-  RefreshCw,
   PieChart,
   Brain,
   Newspaper,
@@ -19,13 +17,17 @@ import {
   Zap,
   Home,
   Briefcase,
-  LineChart
+  LineChart,
+  AlertTriangle,
+  CheckCircle,
+  Wallet,
+  RefreshCw
 } from 'lucide-react'
 
 // Rich Dashboard Components
 import RealTimeDashboard from '../components/RealTimeDashboard'
 import RealTimePortfolioTracker from '../components/RealTimePortfolioTracker'
-import SimpleTradingCharts from '../components/SimpleTradingCharts'
+import RealTimeTradingChart from '../components/RealTimeTradingChart'
 import RealTimeDeFiDashboard from '../components/RealTimeDeFiDashboard'
 import AIInsightsPanel from '../components/AIInsightsPanel'
 import NewsFeed from '../components/NewsFeed'
@@ -34,6 +36,10 @@ import AIChat from '../components/AIChat'
 import RunningPriceTicker from '../components/RunningPriceTicker'
 import { directApiService } from '../services/directApiService'
 
+// Real-time Features
+import { NotificationCenter } from '../components/notifications/NotificationCenter'
+import { ConnectionStatus } from '../components/realtime/ConnectionStatus'
+
 // New Rich Content Components
 import LiveNewsFeed from '../components/LiveNewsFeed'
 import TrendingTopics from '../components/TrendingTopics'
@@ -41,6 +47,27 @@ import MarketMovers from '../components/MarketMovers'
 import DailyAIInsights from '../components/DailyAIInsights'
 import EconomicCalendar from '../components/EconomicCalendar'
 import EducationalTips from '../components/EducationalTips'
+
+// Advanced Analysis Components from AnalysisPage
+import CleanAdvancedTradingChartFixed from '../components/CleanAdvancedTradingChartFixed'
+import TechnicalIndicators from '../components/TechnicalIndicators'
+import BacktestingEngine from '../components/BacktestingEngine'
+import AITradingSignals from '../components/AITradingSignals'
+import PatternRecognition from '../components/PatternRecognition'
+import PortfolioAnalytics from '../components/PortfolioAnalytics'
+import AlertSystem from '../components/AlertSystem'
+
+// Wallet Connector
+import WalletConnector from '../components/WalletConnector'
+
+// Services
+import ApiService from '../services/api'
+import { comprehensiveRealDataService } from '../services/ComprehensiveRealDataService'
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
+
+// Hooks
+import useWallet from '../hooks/useWallet'
+import useTrading from '../hooks/useTrading'
 
 // Types for Dashboard
 interface DashboardMetrics {
@@ -57,20 +84,22 @@ interface DashboardState {
   lastUpdate: Date
   metrics: DashboardMetrics
   error: string | null
+  realTimeData: {
+    prices: any[]
+    marketMovers: any[]
+    fearGreedIndex: any
+  }
 }
 
-// Tab Configuration
-interface TabConfig {
-  id: string
-  name: string
-  icon: React.ComponentType<any>
-  component: React.ComponentType<any>
-  description: string
-}
+
 
 // Dashboard Component - Rich Features Integrated
 const Dashboard: React.FC = () => {
   const { setAIContext } = useAIContext()
+
+  // Wallet and Trading Hooks
+  const { wallet, isConnected, connectWallet, disconnectWallet, formatAddress } = useWallet()
+  const { stakeTokens, claimRewards, isLoading: tradingLoading } = useTrading()
 
   // Core Dashboard State - Always show as connected for production
   const [dashboardState, setDashboardState] = useState<DashboardState>({
@@ -84,73 +113,110 @@ const Dashboard: React.FC = () => {
       connectedSources: 5,
       isRealTime: true
     },
-    error: null
+    error: null,
+    realTimeData: {
+      prices: [],
+      marketMovers: [],
+      fearGreedIndex: null
+    }
   })
 
   // UI State
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-  const [activeTab, setActiveTab] = useState('overview')
   const [showAIChat, setShowAIChat] = useState(false)
 
-  // Update AI context when tab changes
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId)
-    setAIContext(tabId, { activeTab: tabId, dashboardMetrics: dashboardState.metrics })
+  // Analysis Page State
+  const [activeAnalysisTab, setActiveAnalysisTab] = useState<'charts' | 'indicators' | 'backtest' | 'signals' | 'patterns' | 'portfolio' | 'alerts'>('charts')
+  const [selectedSymbol, setSelectedSymbol] = useState('BTC')
+  const [walletAddress, setWalletAddress] = useState('')
+  const [realPriceData, setRealPriceData] = useState<number[]>([])
+  const [realVolumeData, setRealVolumeData] = useState<number[]>([])
+  const [realHistoricalData, setRealHistoricalData] = useState<any[]>([])
+  const [realHoldings, setRealHoldings] = useState<any[]>([])
+  const [analysisResult, setAnalysisResult] = useState<any>(null)
+
+  // Mock data for analysis components
+  const symbols = ['BTC', 'ETH', 'BNB', 'ADA', 'LINK', 'SOL']
+  const mockPriceData = [45000, 46200, 44800, 47100, 45900, 46800, 47500]
+  const mockVolumeData = [1200000, 1350000, 1100000, 1450000, 1300000, 1400000, 1500000]
+  const mockHistoricalData = Array.from({ length: 100 }, (_, i) => ({
+    timestamp: Date.now() - (100 - i) * 24 * 60 * 60 * 1000,
+    open: 45000 + Math.random() * 2000,
+    high: 46000 + Math.random() * 2000,
+    low: 44000 + Math.random() * 2000,
+    close: 45000 + Math.random() * 2000,
+    volume: 1000000 + Math.random() * 500000
+  }))
+  const mockHoldings = [
+    { symbol: 'BTC', amount: 0.5, value: 23000, allocation: 60 },
+    { symbol: 'ETH', amount: 10, value: 15000, allocation: 40 }
+  ]
+
+  // Analysis mutation
+  const analysisMutation = {
+    mutate: (data: any) => {
+      console.log('Analysis mutation called with:', data)
+      setAnalysisResult({ success: true, data: 'Mock analysis result' })
+    },
+    isPending: false,
+    isError: false,
+    error: null
   }
 
-  // Tab Configuration
-  const tabs: TabConfig[] = [
-    {
-      id: 'overview',
-      name: 'Market Overview',
-      icon: Home,
-      component: RealTimeDashboard,
-      description: 'Live market data and trending analysis'
-    },
-    {
-      id: 'portfolio',
-      name: 'Portfolio',
-      icon: Briefcase,
-      component: RealTimePortfolioTracker,
-      description: 'Real-time portfolio tracking and management'
-    },
-    {
-      id: 'trading',
-      name: 'Trading Charts',
-      icon: LineChart,
-      component: SimpleTradingCharts,
-      description: 'Simple and interactive price charts'
-    },
-    {
-      id: 'defi',
-      name: 'DeFi Analytics',
-      icon: Zap,
-      component: RealTimeDeFiDashboard,
-      description: 'DeFi protocols and yield farming analysis'
-    },
-    {
-      id: 'insights',
-      name: 'AI Insights',
-      icon: Brain,
-      component: AIInsightsPanel,
-      description: 'AI-powered market analysis and predictions'
-    },
-    {
-      id: 'news',
-      name: 'News & Sentiment',
-      icon: Newspaper,
-      component: NewsFeed,
-      description: 'Market news and sentiment analysis'
-    }
-  ]
+
 
   // Fetch Dashboard Data using direct API service
   const fetchDashboardData = async () => {
     try {
       setRefreshing(true)
       setDashboardState(prev => ({ ...prev, isLoading: true, error: null }))
+
+      // Initialize real-time service
+      try {
+        await comprehensiveRealTimeService.initialize()
+
+        // Set up real-time data listeners
+        comprehensiveRealTimeService.on('pricesUpdated', (prices) => {
+          setDashboardState(prev => ({
+            ...prev,
+            realTimeData: { ...prev.realTimeData, prices },
+            lastUpdate: new Date()
+          }))
+        })
+
+        comprehensiveRealTimeService.on('marketMoversUpdated', (marketMovers) => {
+          setDashboardState(prev => ({
+            ...prev,
+            realTimeData: { ...prev.realTimeData, marketMovers },
+            lastUpdate: new Date()
+          }))
+        })
+
+        comprehensiveRealTimeService.on('fearGreedUpdated', (fearGreedIndex) => {
+          setDashboardState(prev => ({
+            ...prev,
+            realTimeData: { ...prev.realTimeData, fearGreedIndex },
+            lastUpdate: new Date()
+          }))
+        })
+
+        // Get initial real-time data
+        const initialPrices = comprehensiveRealTimeService.getPrices()
+        const initialMovers = comprehensiveRealTimeService.getMarketMovers()
+        const initialFearGreed = comprehensiveRealTimeService.getFearGreedIndex()
+
+        setDashboardState(prev => ({
+          ...prev,
+          realTimeData: {
+            prices: initialPrices,
+            marketMovers: initialMovers,
+            fearGreedIndex: initialFearGreed
+          }
+        }))
+      } catch (error) {
+        console.warn('Real-time service initialization failed:', error)
+      }
 
       // Fetch market overview from direct API services
       const [cryptoData, defiData] = await Promise.allSettled([
@@ -205,19 +271,7 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(interval)
   }, [])
 
-  // Connection Status
-  const connectionStatus = useMemo(() => {
-    if (dashboardState.isLoading) return { status: 'connecting', color: 'text-yellow-400', icon: Activity }
-    if (dashboardState.isConnected) return { status: 'connected', color: 'text-green-400', icon: Wifi }
-    return { status: 'disconnected', color: 'text-red-400', icon: WifiOff }
-  }, [dashboardState.isLoading, dashboardState.isConnected])
 
-  // Manual Refresh
-  const handleRefresh = () => {
-    if (!refreshing) {
-      fetchDashboardData()
-    }
-  }
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
@@ -236,109 +290,93 @@ const Dashboard: React.FC = () => {
               </span> Dashboard
             </h1>
             <p className="text-lg text-white/70">
-              Professional blockchain analytics and trading platform
+              Professional blockchain analytics and trading platform with advanced analysis tools
             </p>
           </div>
 
+          {/* Real-time Features and Wallet */}
           <div className="flex items-center gap-4">
-            {/* Connection Status */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
-              <connectionStatus.icon className={`w-4 h-4 ${connectionStatus.color}`} />
-              <span className={`text-sm font-medium ${connectionStatus.color}`}>
-                {connectionStatus.status}
-              </span>
-            </div>
-
-            {/* AI Chat Toggle */}
-            <button
-              onClick={() => setShowAIChat(!showAIChat)}
-              className={`p-2 rounded-lg transition-all duration-300 ${
-                showAIChat
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                  : 'bg-white/10 hover:bg-white/20 text-white'
-              }`}
-            >
-              <Brain className="w-5 h-5" />
-            </button>
-
-            {/* Refresh Button */}
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50 border border-white/20"
-            >
-              <RefreshCw className={`w-5 h-5 text-white ${refreshing ? 'animate-spin' : ''}`} />
-            </button>
-
-            {/* Fullscreen Toggle */}
-            <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/20"
-            >
-              <Maximize2 className="w-5 h-5 text-white" />
-            </button>
-
-            {/* Settings */}
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/20"
-            >
-              <Settings className="w-5 h-5 text-white" />
-            </button>
+            <ConnectionStatus showDetails={true} />
+            <NotificationCenter />
+            <WalletConnector />
           </div>
         </motion.div>
 
-        {/* Tab Navigation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-2 p-2 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10">
-            {tabs.map((tab, index) => {
-              const Icon = tab.icon
-              return (
-                <motion.button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 + index * 0.05 }}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium hidden sm:block">{tab.name}</span>
-
-                  {activeTab === tab.id && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl -z-10"
-                      initial={false}
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </motion.button>
-              )
-            })}
-          </div>
-
-          {/* Tab Description */}
-          <motion.p
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
+        {/* Real-Time Market Data Section */}
+        {dashboardState.realTimeData.prices.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-white/60 text-sm mt-3 ml-2"
+            className="mb-8"
           >
-            {tabs.find(tab => tab.id === activeTab)?.description}
-          </motion.p>
-        </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+              {/* Market Cap */}
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/60 text-sm">Total Market Cap</p>
+                    <p className="text-2xl font-bold text-white">
+                      ${(dashboardState.realTimeData.prices.reduce((sum, p) => sum + p.marketCap, 0) / 1e12).toFixed(2)}T
+                    </p>
+                  </div>
+                  <DollarSign className="w-8 h-8 text-green-400" />
+                </div>
+              </div>
+
+              {/* Fear & Greed */}
+              {dashboardState.realTimeData.fearGreedIndex && (
+                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white/60 text-sm">Fear & Greed</p>
+                      <p className="text-2xl font-bold text-white">
+                        {dashboardState.realTimeData.fearGreedIndex.value}
+                      </p>
+                      <p className="text-xs text-white/50">
+                        {dashboardState.realTimeData.fearGreedIndex.classification}
+                      </p>
+                    </div>
+                    <Activity className="w-8 h-8 text-orange-400" />
+                  </div>
+                </div>
+              )}
+
+              {/* Market Movers */}
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/60 text-sm">Top Gainer</p>
+                    {dashboardState.realTimeData.marketMovers.length > 0 && (
+                      <>
+                        <p className="text-lg font-bold text-white">
+                          {dashboardState.realTimeData.marketMovers[0]?.symbol}
+                        </p>
+                        <p className="text-sm text-green-400">
+                          +{dashboardState.realTimeData.marketMovers[0]?.changePercent24h.toFixed(1)}%
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-green-400" />
+                </div>
+              </div>
+
+              {/* Last Update */}
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/60 text-sm">Last Update</p>
+                    <p className="text-lg font-bold text-white">
+                      {dashboardState.lastUpdate.toLocaleTimeString()}
+                    </p>
+                    <p className="text-xs text-green-400">Real-time</p>
+                  </div>
+                  <RefreshCw className="w-8 h-8 text-blue-400" />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Error State - Disabled for production */}
         {/* <AnimatePresence>
@@ -412,131 +450,210 @@ const Dashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Rich Dashboard Content */}
+        {/* Unified Dashboard Content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className={`${isFullscreen ? 'fixed inset-0 z-40 bg-gray-900 p-6' : ''}`}
+          className="space-y-8"
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="min-h-[600px]"
-            >
-              {/* Market Overview Tab */}
-              {activeTab === 'overview' && (
-                <div className="space-y-6">
-                  {/* Main Real-Time Dashboard */}
-                  <RealTimeDashboard />
+          {/* Main Real-Time Dashboard */}
+          <RealTimeDashboard />
 
-                  {/* Rich Content Grid - Phase 1 Enhancements */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {/* Live News Feed */}
-                    <div className="lg:col-span-1">
-                      <LiveNewsFeed
-                        maxItems={4}
-                        showSentiment={true}
-                        autoRefresh={true}
-                      />
-                    </div>
+          {/* Rich Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Live News Feed */}
+            <div className="lg:col-span-1">
+              <LiveNewsFeed
+                maxItems={4}
+                showSentiment={true}
+                autoRefresh={true}
+              />
+            </div>
 
-                    {/* Trending Topics */}
-                    <div className="lg:col-span-1">
-                      <TrendingTopics
-                        maxItems={6}
-                        showMetrics={true}
-                      />
-                    </div>
+            {/* Trending Topics */}
+            <div className="lg:col-span-1">
+              <TrendingTopics
+                maxItems={6}
+                showMetrics={true}
+              />
+            </div>
 
-                    {/* Market Movers */}
-                    <div className="lg:col-span-1 xl:col-span-1">
-                      <MarketMovers
-                        showGainers={true}
-                        showLosers={true}
-                        showVolume={true}
-                        maxItems={3}
-                      />
-                    </div>
-                  </div>
+            {/* Market Movers */}
+            <div className="lg:col-span-1 xl:col-span-1">
+              <MarketMovers
+                showGainers={true}
+                showLosers={true}
+                showVolume={true}
+                maxItems={3}
+              />
+            </div>
+          </div>
 
-                  {/* Second Row - AI Insights and Calendar */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Daily AI Insights */}
-                    <div className="lg:col-span-1">
-                      <DailyAIInsights
-                        maxInsights={3}
-                        showConfidence={true}
-                      />
-                    </div>
+          {/* Portfolio and Trading Section */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* Portfolio Tracker */}
+            <div className="xl:col-span-1">
+              <RealTimePortfolioTracker />
+            </div>
 
-                    {/* Economic Calendar */}
-                    <div className="lg:col-span-1">
-                      <EconomicCalendar
-                        maxEvents={4}
-                        showPastEvents={false}
-                        timeframe="week"
-                      />
-                    </div>
-                  </div>
+            {/* Real-Time Trading Chart */}
+            <div className="xl:col-span-1">
+              <RealTimeTradingChart
+                symbol="BTC"
+                height={400}
+                showControls={true}
+                className="w-full"
+              />
+            </div>
+          </div>
 
-                  {/* Educational Tips - Full Width */}
-                  <div className="w-full">
-                    <EducationalTips
-                      autoRotate={true}
-                    />
-                  </div>
-                </div>
+          {/* DeFi and AI Insights Section */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* DeFi Analytics */}
+            <div className="xl:col-span-1">
+              <RealTimeDeFiDashboard />
+            </div>
+
+            {/* AI Insights */}
+            <div className="xl:col-span-1">
+              <AIInsightsPanel
+                marketData={dashboardState.metrics}
+                protocols={[]}
+              />
+            </div>
+          </div>
+
+          {/* Advanced Analysis Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="bg-gray-900/80 backdrop-blur-sm rounded-xl border border-white/10 p-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Advanced Analysis Tools</h2>
+                <p className="text-white/60">Professional trading tools with technical analysis and AI insights</p>
+              </div>
+            </div>
+
+            {/* Analysis Navigation Tabs */}
+            <div className="flex flex-wrap gap-2 bg-white/5 p-2 rounded-lg mb-6">
+              {[
+                { id: 'charts', label: 'Trading Charts', icon: <BarChart3 className="w-4 h-4" /> },
+                { id: 'indicators', label: 'Technical Indicators', icon: <TrendingUp className="w-4 h-4" /> },
+                { id: 'backtest', label: 'Backtesting', icon: <Brain className="w-4 h-4" /> },
+                { id: 'signals', label: 'AI Signals', icon: <AlertTriangle className="w-4 h-4" /> },
+                { id: 'patterns', label: 'Pattern Recognition', icon: <CheckCircle className="w-4 h-4" /> },
+                { id: 'portfolio', label: 'Portfolio Analytics', icon: <DollarSign className="w-4 h-4" /> },
+                { id: 'alerts', label: 'Alert System', icon: <Target className="w-4 h-4" /> }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveAnalysisTab(tab.id as any)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                    activeAnalysisTab === tab.id
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  {tab.icon}
+                  <span className="hidden sm:block">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Analysis Content */}
+            <div className="min-h-[500px]">
+              {activeAnalysisTab === 'charts' && (
+                <CleanAdvancedTradingChartFixed
+                  symbol={selectedSymbol}
+                  data={realHistoricalData.length > 0 ? realHistoricalData : mockHistoricalData}
+                  onTimeframeChange={(timeframe) => console.log('Timeframe changed:', timeframe)}
+                  onSymbolChange={(symbol) => setSelectedSymbol(symbol)}
+                />
               )}
 
-              {/* Portfolio Tab */}
-              {activeTab === 'portfolio' && (
-                <div className="space-y-6">
-                  <RealTimePortfolioTracker />
-                </div>
+              {activeAnalysisTab === 'indicators' && (
+                <TechnicalIndicators
+                  symbol={selectedSymbol}
+                  priceData={realPriceData.length > 0 ? realPriceData : mockPriceData}
+                  volumeData={realVolumeData.length > 0 ? realVolumeData : mockVolumeData}
+                  onIndicatorChange={(indicators) => console.log('Indicators changed:', indicators)}
+                />
               )}
 
-              {/* Trading Charts Tab */}
-              {activeTab === 'trading' && (
-                <div className="space-y-6">
-                  <SimpleTradingCharts
-                    symbol="BTC"
-                    height={isFullscreen ? window.innerHeight - 200 : 600}
-                    showControls={true}
-                    className="w-full"
-                  />
-                </div>
+              {activeAnalysisTab === 'backtest' && (
+                <BacktestingEngine
+                  symbol={selectedSymbol}
+                  historicalData={realHistoricalData.length > 0 ? realHistoricalData : mockHistoricalData}
+                  onStrategyChange={(strategy) => console.log('Strategy changed:', strategy)}
+                />
               )}
 
-              {/* DeFi Analytics Tab */}
-              {activeTab === 'defi' && (
-                <div className="space-y-6">
-                  <RealTimeDeFiDashboard />
-                </div>
+              {activeAnalysisTab === 'signals' && (
+                <AITradingSignals
+                  symbols={symbols}
+                  onSignalAction={(signal, action) => console.log('Signal action:', signal, action)}
+                />
               )}
 
-              {/* AI Insights Tab */}
-              {activeTab === 'insights' && (
-                <div className="space-y-6">
-                  <AIInsightsPanel
-                    marketData={dashboardState.metrics}
-                    protocols={[]}
-                  />
-                </div>
+              {activeAnalysisTab === 'patterns' && (
+                <PatternRecognition
+                  symbol={selectedSymbol}
+                  priceData={realPriceData.length > 0 ? realPriceData : mockPriceData}
+                  volumeData={realVolumeData.length > 0 ? realVolumeData : mockVolumeData}
+                  onPatternDetected={(pattern) => console.log('Pattern detected:', pattern)}
+                />
               )}
 
-              {/* News & Sentiment Tab */}
-              {activeTab === 'news' && (
-                <div className="space-y-6">
-                  <NewsFeed />
-                </div>
+              {activeAnalysisTab === 'portfolio' && (
+                <PortfolioAnalytics
+                  walletAddress={walletAddress}
+                  holdings={realHoldings.length > 0 ? realHoldings : mockHoldings}
+                  isLoading={analysisMutation.isPending}
+                  onRebalance={() => console.log('Rebalance requested')}
+                />
               )}
-            </motion.div>
-          </AnimatePresence>
+
+              {activeAnalysisTab === 'alerts' && (
+                <AlertSystem
+                  symbols={symbols}
+                  onAlertTriggered={(alert) => console.log('Alert triggered:', alert)}
+                />
+              )}
+            </div>
+          </motion.div>
+
+          {/* Additional Insights Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Daily AI Insights */}
+            <div className="lg:col-span-1">
+              <DailyAIInsights
+                maxInsights={3}
+                showConfidence={true}
+              />
+            </div>
+
+            {/* Economic Calendar */}
+            <div className="lg:col-span-1">
+              <EconomicCalendar
+                maxEvents={4}
+                showPastEvents={false}
+                timeframe="week"
+              />
+            </div>
+          </div>
+
+          {/* News Feed */}
+          <NewsFeed />
+
+          {/* Educational Tips */}
+          <EducationalTips autoRotate={true} />
         </motion.div>
 
         {/* AI Chat Overlay */}
@@ -578,98 +695,8 @@ const Dashboard: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* Enhanced Settings Panel */}
-        <AnimatePresence>
-          {showSettings && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-              onClick={() => setShowSettings(false)}
-            >
-              <motion.div
-                className="bg-gray-900/95 backdrop-blur-lg rounded-2xl border border-white/20 max-w-2xl w-full"
-                onClick={(e) => e.stopPropagation()}
-                initial={{ y: 50 }}
-                animate={{ y: 0 }}
-                exit={{ y: 50 }}
-              >
-                <div className="p-6 border-b border-white/10">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Settings className="w-6 h-6 text-blue-400" />
-                      <h3 className="text-xl font-bold text-white">Dashboard Settings</h3>
-                    </div>
-                    <button
-                      onClick={() => setShowSettings(false)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      <span className="text-white/60 text-xl">×</span>
-                    </button>
-                  </div>
-                </div>
 
-                <div className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h4 className="text-lg font-semibold text-white">System Status</h4>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/70">Connection Status</span>
-                          <span className={`font-medium ${dashboardState.isConnected ? 'text-green-400' : 'text-red-400'}`}>
-                            {dashboardState.isConnected ? 'Connected' : 'Disconnected'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/70">Data Sources</span>
-                          <span className="text-white">{dashboardState.metrics.connectedSources}/4</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/70">Real-time Updates</span>
-                          <span className={dashboardState.metrics.isRealTime ? 'text-green-400' : 'text-yellow-400'}>
-                            {dashboardState.metrics.isRealTime ? 'Active' : 'Cached'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="space-y-4">
-                      <h4 className="text-lg font-semibold text-white">Configuration</h4>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/70">Auto-refresh</span>
-                          <span className="text-green-400">Enabled</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/70">Refresh Interval</span>
-                          <span className="text-white">30 seconds</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/70">Last Updated</span>
-                          <span className="text-white/60 text-sm">
-                            {dashboardState.lastUpdate.toLocaleTimeString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Network diagnostics removed for frontend independence */}
-                </div>
-
-                <div className="p-6 border-t border-white/10">
-                  <button
-                    onClick={() => setShowSettings(false)}
-                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg text-white font-medium transition-all duration-300"
-                  >
-                    Close Settings
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       {/* Running Price Ticker moved to App.tsx for global positioning */}

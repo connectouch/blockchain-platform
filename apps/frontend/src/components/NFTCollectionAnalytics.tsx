@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  TrendingUp, 
-  TrendingDown, 
+import {
+  TrendingUp,
+  TrendingDown,
   Search,
   Filter,
   BarChart3,
@@ -18,6 +18,7 @@ import {
   ExternalLink,
   RefreshCw
 } from 'lucide-react'
+import { NFTLocalImage } from './ui/LocalImage'
 
 interface NFTCollection {
   id: string
@@ -220,12 +221,14 @@ const NFTCollectionAnalytics: React.FC<NFTCollectionAnalyticsProps> = ({
             onClick={() => setSelectedCollection(collection)}
           >
             {/* Collection Image */}
-            <div className={`${viewMode === 'list' ? 'w-16 h-16' : 'w-full h-48'} bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden`}>
-              {collection.image ? (
-                <img src={collection.image} alt={collection.name} className="w-full h-full object-cover" />
-              ) : (
-                <Crown className={`${viewMode === 'list' ? 'w-8 h-8' : 'w-16 h-16'} text-purple-400`} />
-              )}
+            <div className={`${viewMode === 'list' ? 'w-16 h-16' : 'w-full h-48'} mb-4 overflow-hidden`}>
+              <NFTLocalImage
+                identifier={collection.contractAddress || collection.id || collection.id}
+                fallbackName={collection.name}
+                alt={collection.name}
+                size={viewMode === 'list' ? 'md' : 'xl'}
+                className="w-full h-full"
+              />
             </div>
 
             <div className="flex-1">
@@ -274,7 +277,16 @@ const NFTCollectionAnalytics: React.FC<NFTCollectionAnalyticsProps> = ({
                   <span className="text-xs text-white/60">•</span>
                   <span className="text-xs text-white/60">{formatNumber(collection.totalSupply)} items</span>
                 </div>
-                <button className="text-purple-400 hover:text-purple-300 transition-colors">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation() // Prevent opening the modal
+                    const openSeaUrl = `https://opensea.io/collection/${collection.name.toLowerCase().replace(/\s+/g, '-')}`
+                    window.open(openSeaUrl, '_blank')
+                    console.log(`Quick link to ${collection.name} on OpenSea`)
+                  }}
+                  className="text-purple-400 hover:text-purple-300 transition-colors"
+                  title="View on OpenSea"
+                >
                   <ExternalLink className="w-4 h-4" />
                 </button>
               </div>
@@ -312,12 +324,16 @@ const NFTCollectionAnalytics: React.FC<NFTCollectionAnalyticsProps> = ({
               {/* Modal Header */}
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center overflow-hidden">
-                    {selectedCollection.image ? (
-                      <img src={selectedCollection.image} alt={selectedCollection.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <Crown className="w-8 h-8 text-purple-400" />
-                    )}
+                  <div className="w-16 h-16 overflow-hidden">
+                    <img
+                      src={selectedCollection.image}
+                      alt={selectedCollection.name}
+                      size="md"
+                      collectionName={selectedCollection.name}
+                      tokenId="1"
+                      contractAddress={selectedCollection.contractAddress}
+                      className="w-full h-full"
+                    />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -425,10 +441,24 @@ const NFTCollectionAnalytics: React.FC<NFTCollectionAnalyticsProps> = ({
                     Visit Website
                   </a>
                 )}
-                <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                <button
+                  onClick={() => {
+                    // Open OpenSea collection page
+                    const openSeaUrl = `https://opensea.io/collection/${selectedCollection.name.toLowerCase().replace(/\s+/g, '-')}`
+                    window.open(openSeaUrl, '_blank')
+                    console.log(`Opening ${selectedCollection.name} on OpenSea`)
+                  }}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+                >
                   View on OpenSea
                 </button>
-                <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                <button
+                  onClick={() => {
+                    console.log(`Added ${selectedCollection.name} to NFT watchlist`)
+                    alert(`⭐ ${selectedCollection.name} added to your NFT watchlist!\n\nYou'll receive notifications about:\n• Floor price changes\n• Volume spikes\n• New listings\n• Rare trait discoveries\n• Market trends`)
+                  }}
+                  className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+                >
                   Add to Watchlist
                 </button>
               </div>

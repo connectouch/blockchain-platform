@@ -5,10 +5,13 @@ import { Zap, Activity, DollarSign, BarChart3, Shield, AlertTriangle, RefreshCw 
 import { directApiService } from '../services/directApiService'
 import LoadingSpinner from '@components/LoadingSpinner'
 import SafeInfrastructureWrapper from '@components/SafeInfrastructureWrapper'
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
 
 const InfrastructurePageContent: React.FC = () => {
   const [debugInfo, setDebugInfo] = useState<string[]>([])
   const [forceRefresh, setForceRefresh] = useState(0)
+  const [realTimeInfraData, setRealTimeInfraData] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(new Date())
 
   // Enhanced error logging
   const addDebugInfo = (info: string) => {
@@ -42,6 +45,33 @@ const InfrastructurePageContent: React.FC = () => {
 
   // projects is now directly from the query
 
+  // Initialize real-time infrastructure data
+  useEffect(() => {
+    const initializeRealTimeData = async () => {
+      try {
+        await comprehensiveRealTimeService.initialize()
+
+        // Set up real-time infrastructure data listener
+        comprehensiveRealTimeService.on('infrastructureUpdated', (infraData) => {
+          setRealTimeInfraData(infraData)
+          setLastUpdate(new Date())
+        })
+
+        // Get initial data
+        const initialData = comprehensiveRealTimeService.getInfrastructureData()
+        setRealTimeInfraData(initialData)
+      } catch (error) {
+        console.warn('Real-time infrastructure data initialization failed:', error)
+      }
+    }
+
+    initializeRealTimeData()
+
+    return () => {
+      comprehensiveRealTimeService.removeAllListeners()
+    }
+  }, [])
+
   // Force refresh handler
   const handleForceRefresh = () => {
     addDebugInfo('Force refresh triggered')
@@ -66,6 +96,54 @@ const InfrastructurePageContent: React.FC = () => {
             Explore Layer 1/2 blockchains and scaling solutions
           </p>
         </motion.div>
+
+        {/* Real-Time Infrastructure Data Section */}
+        {realTimeInfraData.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Real-Time Infrastructure Metrics</h3>
+                <span className="text-sm text-green-400">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Network Uptime</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeInfraData.reduce((sum, n) => sum + n.uptime, 0) / realTimeInfraData.length).toFixed(1)}%
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Active Validators</p>
+                  <p className="text-2xl font-bold text-white">
+                    {realTimeInfraData.reduce((sum, n) => sum + n.validators, 0).toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Avg Staking APY</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeInfraData.reduce((sum, n) => sum + n.stakingAPY, 0) / realTimeInfraData.length).toFixed(1)}%
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Top Network</p>
+                  <p className="text-lg font-bold text-white">
+                    {realTimeInfraData.sort((a, b) => b.validators - a.validators)[0]?.name.slice(0, 10)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Loading State */}
         {isLoading && (

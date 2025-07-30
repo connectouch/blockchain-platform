@@ -2,11 +2,17 @@ import React, { Suspense, useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
-import { useElectron, usePriceAlerts } from '@hooks/useElectron'
+// import { useElectron, usePriceAlerts } from '@hooks/useElectron' // Disabled for web deployment
 import ProductionMonitor from '@components/ProductionMonitor'
+import { AuthProvider } from './contexts/AuthContext'
+
+// Enhanced real-time components - Direct imports for debugging
+import RealTimeDashboard from './components/enhanced/RealTimeDashboard'
+// const RealTimeDeFiPage = React.lazy(() => import('./components/enhanced/RealTimeDeFiPage'))
+// const EnhancedNFTPage = React.lazy(() => import('./components/enhanced/EnhancedNFTPage'))
 
 // Lazy load components for better performance
-const Dashboard = React.lazy(() => import('@pages/Dashboard'))
+import Dashboard from '@pages/Dashboard'
 const DeFiPage = React.lazy(() => import('@pages/DeFiPage'))
 const NFTPage = React.lazy(() => import('@pages/NFTPage'))
 const GameFiPage = React.lazy(() => import('@pages/GameFiPage'))
@@ -17,6 +23,7 @@ const PortfolioPage = React.lazy(() => import('@pages/PortfolioPage'))
 const MultiChainPage = React.lazy(() => import('@pages/MultiChainPage'))
 const EnhancedDAOPage = React.lazy(() => import('@pages/EnhancedDAOPage'))
 const InfrastructurePage = React.lazy(() => import('@pages/InfrastructurePage'))
+
 // const ChartTestPage = React.lazy(() => import('@pages/ChartTestPage')) // Removed for production
 
 // Components
@@ -25,8 +32,9 @@ import Footer from '@components/Footer'
 import BackgroundEffects from '@components/BackgroundEffects'
 import FloatingPriceTicker from '@components/FloatingPriceTicker'
 import SimplePriceTicker from '@components/SimplePriceTicker'
-// ConnectionStatusIndicator removed for frontend independence
-// import FloatingTickerSettings from '@components/FloatingTickerSettings'
+import EnhancedConnectionMonitor from '@components/EnhancedConnectionMonitor'
+import ProductionMonitor from '@components/ProductionMonitor'
+// import FloatingTickerSettings from '@components/FloatingTickerSettings' // Available if needed
 
 // Contexts
 import { AIAssistantProvider, useAIAssistant } from './contexts/AIAssistantContext'
@@ -77,8 +85,10 @@ const pageTransition = {
 }
 
 function App() {
-  const { isElectron, showDesktopNotification } = useElectron()
-  const { checkPriceAlerts } = usePriceAlerts()
+  // Disabled Electron hooks for web deployment
+  // const { isElectron, showDesktopNotification } = useElectron()
+  // const { checkPriceAlerts } = usePriceAlerts()
+  const isElectron = false
   const [appError, setAppError] = useState<string | null>(null)
 
   // Initialize master prefetch for optimal performance with real data - DISABLED for production stability
@@ -134,16 +144,16 @@ function App() {
     }
   }, [])
 
-  // Desktop-specific initialization
+  // Desktop-specific initialization - disabled for web
   useEffect(() => {
     if (isElectron) {
       console.log('🖥️ Running in Electron desktop mode')
 
-      // Show welcome notification
-      showDesktopNotification(
-        'Connectouch Desktop Launched',
-        'Your blockchain AI platform is ready! 🚀'
-      )
+      // Show welcome notification - disabled for web
+      // showDesktopNotification(
+      //   'Connectouch Desktop Launched',
+      //   'Your blockchain AI platform is ready! 🚀'
+      // )
 
       // Set up price monitoring for alerts (with enhanced error handling)
       const priceMonitor = setInterval(async () => {
@@ -172,7 +182,7 @@ function App() {
             Object.entries(data.data).forEach(([key, value]: [string, any]) => {
               prices[key] = value.usd
             })
-            await checkPriceAlerts(prices)
+            // await checkPriceAlerts(prices) // Disabled for web
           }
         } catch (error) {
           console.warn('Price monitoring temporarily unavailable:', error)
@@ -183,7 +193,7 @@ function App() {
 
       return () => clearInterval(priceMonitor)
     }
-  }, [isElectron, showDesktopNotification, checkPriceAlerts])
+  }, [isElectron]) // Removed disabled dependencies
 
   // Show error screen if there's an app error (TEMPORARILY DISABLED)
   if (false && appError) {
@@ -223,12 +233,14 @@ function App() {
 
   // Final working version with all fixes applied
   return (
-    <AIAssistantProvider>
-      <FloatingAIProvider>
-        <AppContent />
-        <FloatingAIWrapper />
-      </FloatingAIProvider>
-    </AIAssistantProvider>
+    <AuthProvider>
+      <AIAssistantProvider>
+        <FloatingAIProvider>
+          <AppContent />
+          <FloatingAIWrapper />
+        </FloatingAIProvider>
+      </AIAssistantProvider>
+    </AuthProvider>
   )
 }
 
@@ -411,6 +423,7 @@ const AppContent: React.FC = () => {
                   </motion.div>
                 }
               />
+
             </Routes>
           </Suspense>
         </AnimatePresence>
@@ -419,11 +432,26 @@ const AppContent: React.FC = () => {
       {/* Footer */}
       <Footer />
 
-      {/* All system health indicators removed for frontend independence */}
-      {/* Floating Price Ticker - Card style (disabled) */}
-      {/* Running Price Ticker - Bottom position (disabled) */}
-      {/* Enhanced Connection Monitor (disabled) */}
-      {/* Production Monitor (disabled) */}
+      {/* RESTORED: All Rich Features and System Health Indicators */}
+
+      {/* Floating Price Ticker - Card style (ENABLED) */}
+      <FloatingPriceTicker />
+
+      {/* Simple Price Ticker - Bottom position (ENABLED) */}
+      <SimplePriceTicker />
+
+      {/* Enhanced Connection Monitor (ENABLED) */}
+      <EnhancedConnectionMonitor />
+
+      {/* Production Monitor (ENABLED) */}
+      <ProductionMonitor />
+
+      {/* Real-time Notifications (ENABLED) */}
+      <div className="fixed top-4 left-4 z-50">
+        <div className="bg-green-500/20 backdrop-blur-lg rounded-lg px-4 py-2 text-sm text-green-400 border border-green-500/30">
+          🚀 Full Platform Active
+        </div>
+      </div>
     </div>
   )
 }

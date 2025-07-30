@@ -101,7 +101,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
           }
         })
       )
-      setDataSources(updatedSources)
+      setDataSources(updatedSources as DataSourceStatus[])
     }
 
     checkDataSources()

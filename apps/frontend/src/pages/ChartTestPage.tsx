@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAIContext } from '../contexts/AIAssistantContext'
-import { 
-  Activity, 
-  BarChart3, 
-  TrendingUp, 
-  Wifi, 
-  CheckCircle, 
-  AlertCircle,
+import {
+  BarChart3,
+  TrendingUp,
   Smartphone,
   Monitor,
   Tablet
 } from 'lucide-react'
-import SimpleTradingCharts from '../components/SimpleTradingCharts'
-import { websocketService } from '../services/websocketService'
+import SimpleTradingChartFixed from '../components/SimpleTradingChartFixed'
 
 const ChartTestPage: React.FC = () => {
   const { setAIContext } = useAIContext()
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected')
-  const [testResults, setTestResults] = useState<{ [key: string]: boolean }>({})
   const [selectedSymbol, setSelectedSymbol] = useState('BTC')
   const [viewportSize, setViewportSize] = useState('desktop')
 
@@ -29,85 +22,7 @@ const ChartTestPage: React.FC = () => {
 
   const testSymbols = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL']
 
-  useEffect(() => {
-    // Test WebSocket connection
-    websocketService.setCallbacks({
-      onConnect: () => {
-        setConnectionStatus('connected')
-        setTestResults(prev => ({ ...prev, websocket: true }))
-      },
-      onDisconnect: () => {
-        setConnectionStatus('disconnected')
-        setTestResults(prev => ({ ...prev, websocket: false }))
-      },
-      onError: () => {
-        setConnectionStatus('disconnected')
-        setTestResults(prev => ({ ...prev, websocket: false }))
-      },
-      onCandlestickUpdate: () => {
-        setTestResults(prev => ({ ...prev, realTimeData: true }))
-      },
-      onTickerUpdate: () => {
-        setTestResults(prev => ({ ...prev, priceUpdates: true }))
-      }
-    })
 
-    // Test API endpoints
-    testApiEndpoints()
-
-    return () => {
-      websocketService.disconnect()
-    }
-  }, [])
-
-  const testApiEndpoints = async () => {
-    try {
-      // Test chart data endpoint
-      const chartResponse = await fetch(`http://localhost:3002/api/v2/blockchain/chart/${selectedSymbol}`)
-      const chartData = await chartResponse.json()
-      setTestResults(prev => ({ 
-        ...prev, 
-        chartApi: chartResponse.ok && chartData.success 
-      }))
-
-      // Test WebSocket stats endpoint
-      const statsResponse = await fetch('http://localhost:3002/api/v2/websocket/stats')
-      const statsData = await statsResponse.json()
-      setTestResults(prev => ({ 
-        ...prev, 
-        websocketStats: statsResponse.ok && statsData.success 
-      }))
-
-      // Test backend health
-      const healthResponse = await fetch('http://localhost:3002/health')
-      const healthData = await healthResponse.json()
-      setTestResults(prev => ({ 
-        ...prev, 
-        backendHealth: healthResponse.ok && healthData.status === 'healthy' 
-      }))
-    } catch (error) {
-      console.error('API test failed:', error)
-      setTestResults(prev => ({ 
-        ...prev, 
-        chartApi: false,
-        websocketStats: false,
-        backendHealth: false
-      }))
-    }
-  }
-
-  const TestIndicator = ({ label, status }: { label: string; status: boolean | undefined }) => (
-    <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
-      {status === true ? (
-        <CheckCircle className="w-4 h-4 text-green-400" />
-      ) : status === false ? (
-        <AlertCircle className="w-4 h-4 text-red-400" />
-      ) : (
-        <div className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
-      )}
-      <span className="text-white/80 text-sm">{label}</span>
-    </div>
-  )
 
   const ViewportButton = ({ size, icon, label }: { size: string; icon: React.ReactNode; label: string }) => (
     <button
@@ -229,121 +144,54 @@ const ChartTestPage: React.FC = () => {
           'max-w-7xl mx-auto'
         }`}
       >
-        <SimpleTradingCharts
+        <SimpleTradingChartFixed
           symbol={selectedSymbol}
           height={viewportSize === 'mobile' ? 400 : viewportSize === 'tablet' ? 500 : 700}
-          showControls={true}
           className="mb-8"
         />
       </motion.div>
 
-      {/* Feature Test Grid */}
+      {/* Clean Chart Testing Interface */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto"
+        className="max-w-7xl mx-auto text-center"
       >
-        {/* Technical Indicators Test */}
-        <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-green-400" />
-            Technical Indicators
+        <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-lg p-8">
+          <h3 className="text-xl font-semibold text-white mb-4">
+            Clean Trading Charts
           </h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-white/60">Moving Averages</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
+          <p className="text-white/60 mb-6">
+            Real-time cryptocurrency trading charts with clean interface and live data integration.
+            No status indicators, no connection monitoring - just pure trading data visualization.
+          </p>
+          <div className="flex items-center justify-center gap-4 text-sm text-white/60">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span>Real-time Data</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">RSI</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <span>Clean Interface</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">MACD</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Bollinger Bands</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Support/Resistance</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Interactive Features Test */}
-        <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-400" />
-            Interactive Features
-          </h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-white/60">Zoom & Pan</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Crosshair</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Timeframe Switch</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Symbol Selection</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Settings Panel</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Performance Test */}
-        <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-purple-400" />
-            Performance
-          </h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-white/60">Real-time Updates</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Smooth Animations</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Memory Usage</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Mobile Responsive</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60">Error Handling</span>
-              <CheckCircle className="w-4 h-4 text-green-400" />
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+              <span>No Indicators</span>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Footer */}
+      {/* Success Message */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
         className="text-center mt-12 text-white/60"
       >
-        <p>🏆 Advanced Trading Charts System - Production Ready</p>
-        <p className="text-sm mt-2">Real-time WebSocket streaming • Professional-grade indicators • Interactive controls</p>
+        <p>🎯 Clean Trading Charts - Zero Indicators</p>
+        <p className="text-sm mt-2">Real-time data • Clean interface • Professional visualization</p>
       </motion.div>
     </div>
   )

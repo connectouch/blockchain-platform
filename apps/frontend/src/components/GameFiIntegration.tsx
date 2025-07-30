@@ -90,7 +90,7 @@ const GameFiIntegration: React.FC = () => {
           timeRequired: '2-3 hours',
           difficulty: 'Medium',
           requirements: ['3 Axies (min $150)', 'Basic strategy knowledge'],
-          roi: 15,
+
           isActive: true
         },
         {
@@ -100,7 +100,7 @@ const GameFiIntegration: React.FC = () => {
           timeRequired: '4-6 hours',
           difficulty: 'Hard',
           requirements: ['LAND NFT ($500+)', 'VoxEdit skills', 'Game Maker knowledge'],
-          roi: 25,
+
           isActive: true
         },
         {
@@ -110,7 +110,7 @@ const GameFiIntegration: React.FC = () => {
           timeRequired: '1-2 hours',
           difficulty: 'Easy',
           requirements: ['Starter deck ($10)', 'Basic card strategy'],
-          roi: 12,
+
           isActive: true
         },
         {
@@ -135,6 +135,7 @@ const GameFiIntegration: React.FC = () => {
       } catch (error) {
         console.error('Error fetching GameFi opportunities:', error);
         // Use mock data as fallback
+        const mockOpportunities = realOpportunities; // Use the defined array
         setOpportunities(mockOpportunities);
       }
     };

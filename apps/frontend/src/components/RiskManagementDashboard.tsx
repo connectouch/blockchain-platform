@@ -284,12 +284,14 @@ const RiskManagementDashboard: React.FC<RiskManagementDashboardProps> = ({
         }
       ]
 
+        // Use real data directly
+
         setRiskMetrics(realRiskMetrics);
-        setConcentrationAnalysis(mockConcentration);
-        setCorrelationMatrix(mockCorrelation);
-        setStressTests(mockStressTests);
-        setLiquidityAnalysis(mockLiquidity);
-        setSelectedStressTest(mockStressTests[0].id);
+        setConcentrationAnalysis(realConcentrationAnalysis);
+        setCorrelationMatrix(realCorrelationMatrix);
+        setStressTests(realStressTests);
+        setLiquidityAnalysis(realLiquidityAnalysis);
+        setSelectedStressTest(realStressTests[0].id);
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching real risk data:', error);
@@ -310,11 +312,12 @@ const RiskManagementDashboard: React.FC<RiskManagementDashboardProps> = ({
           counterpartyRisk: 28
         };
         setRiskMetrics(fallbackRiskMetrics);
-        setConcentrationAnalysis(mockConcentration);
-        setCorrelationMatrix(mockCorrelation);
-        setStressTests(mockStressTests);
-        setLiquidityAnalysis(mockLiquidity);
-        setSelectedStressTest(mockStressTests[0].id);
+        // Use fallback data directly
+        setConcentrationAnalysis(realConcentrationAnalysis);
+        setCorrelationMatrix(realCorrelationMatrix);
+        setStressTests(realStressTests);
+        setLiquidityAnalysis(realLiquidityAnalysis);
+        setSelectedStressTest(realStressTests[0].id);
         setIsLoading(false);
       }
     };

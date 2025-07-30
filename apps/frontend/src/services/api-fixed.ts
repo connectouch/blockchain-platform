@@ -303,7 +303,7 @@ export class ApiService {
             sales24h: 34,
             chain: 'ethereum',
             verified: true,
-            image: '/api/placeholder/300/300',
+            image: 'https://i.seadn.io/gae/BdxvLseXcfl57BiuQcQYdJ64v-aI8din7WPk0Pgo3qQFhAUH-B6i-dCqqHgy_Jp9uv3iukP9H847yaGb_RBMIDxaUB3MfkRIKjOYzgI?auto=format&dpr=1&w=384',
             description: 'The original NFT collection on Ethereum',
             rarityEnabled: true,
             traits: []

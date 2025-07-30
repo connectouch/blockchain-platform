@@ -1,7 +1,47 @@
 /**
  * Netlify Function: DeFi Protocols Proxy
- * Fetches DeFi protocols data from DeFiLlama API to avoid CORS issues
+ * Uses only approved APIs (CoinMarketCap) for protocol logos
  */
+
+// Helper function to get crypto logo from CoinMarketCap API
+async function getCryptoLogoFromCMC(symbol) {
+  const CMC_API_KEY = process.env.VITE_COINMARKETCAP_API_KEY || 'd714f7e6-91a5-47ac-866e-f28f26eee302';
+
+  try {
+    const response = await fetch(`https://pro-api.coinmarketcap.com/v1/cryptocurrency/info?symbol=${symbol}`, {
+      headers: {
+        'X-CMC_PRO_API_KEY': CMC_API_KEY,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.data && data.data[symbol] && data.data[symbol].logo) {
+        return data.data[symbol].logo;
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch logo for ${symbol}:`, error.message);
+  }
+
+  // Generate fallback SVG logo
+  return generateFallbackLogo(symbol);
+}
+
+// Generate fallback logo
+function generateFallbackLogo(symbol) {
+  const colors = ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'];
+  const color = colors[symbol.length % colors.length];
+  const letter = symbol.charAt(0).toUpperCase();
+
+  return `data:image/svg+xml,${encodeURIComponent(`
+    <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+      <rect width="64" height="64" rx="12" fill="${color}"/>
+      <text x="32" y="42" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">${letter}</text>
+    </svg>
+  `)}`;
+}
 
 exports.handler = async (event, context) => {
   // Set CORS headers
@@ -92,7 +132,7 @@ exports.handler = async (event, context) => {
         change_7d: -1.2,
         category: 'Dexes',
         chains: ['ethereum', 'polygon', 'arbitrum'],
-        logo: null,
+        logo: generateFallbackLogo('UNI'),
         url: 'https://uniswap.org',
         description: 'Decentralized trading protocol'
       },
@@ -105,7 +145,7 @@ exports.handler = async (event, context) => {
         change_7d: 3.5,
         category: 'Lending',
         chains: ['ethereum', 'polygon', 'avalanche'],
-        logo: null,
+        logo: generateFallbackLogo('AAVE'),
         url: 'https://aave.com',
         description: 'Decentralized lending protocol'
       },
@@ -118,7 +158,7 @@ exports.handler = async (event, context) => {
         change_7d: 2.1,
         category: 'Lending',
         chains: ['ethereum'],
-        logo: null,
+        logo: generateFallbackLogo('COMP'),
         url: 'https://compound.finance',
         description: 'Algorithmic money markets'
       },
@@ -131,7 +171,7 @@ exports.handler = async (event, context) => {
         change_7d: -2.3,
         category: 'CDP',
         chains: ['ethereum'],
-        logo: null,
+        logo: generateFallbackLogo('MKR'),
         url: 'https://makerdao.com',
         description: 'Decentralized stablecoin platform'
       },
@@ -144,7 +184,7 @@ exports.handler = async (event, context) => {
         change_7d: 4.7,
         category: 'Dexes',
         chains: ['ethereum', 'polygon', 'arbitrum'],
-        logo: null,
+        logo: generateFallbackLogo('CRV'),
         url: 'https://curve.fi',
         description: 'Decentralized exchange for stablecoins'
       },
@@ -157,7 +197,7 @@ exports.handler = async (event, context) => {
         change_7d: 8.9,
         category: 'Liquid Staking',
         chains: ['ethereum'],
-        logo: null,
+        logo: generateFallbackLogo('LDO'),
         url: 'https://lido.fi',
         description: 'Liquid staking solution'
       }

@@ -175,7 +175,7 @@ VALUES ('latest', '[
     "sales24h": 89,
     "chain": "ethereum",
     "verified": true,
-    "image": "/api/placeholder/300/300",
+    "image": "https://i.seadn.io/gae/Ju9CkWtV-1Okvf45wo8UctR-M9He2PjILP0oOvxE89AyiPPGtrR3gysu1Zgy0hjd2xKIgjJJtWIc0ybj4Vd7wv8t3pxDGHoJBzDB?auto=format&dpr=1&w=384",
     "description": "A collection of 10,000 unique Bored Ape NFTs",
     "rarityEnabled": true,
     "traits": []
@@ -195,7 +195,7 @@ VALUES ('latest', '[
     "sales24h": 34,
     "chain": "ethereum",
     "verified": true,
-    "image": "/api/placeholder/300/300",
+    "image": "https://i.seadn.io/gae/BdxvLseXcfl57BiuQcQYdJ64v-aI8din7WPk0Pgo3qQFhAUH-B6i-dCqqHgy_Jp9uv3iukP9H847yaGb_RBMIDxaUB3MfkRIKjOYzgI?auto=format&dpr=1&w=384",
     "description": "The original NFT collection on Ethereum",
     "rarityEnabled": true,
     "traits": []

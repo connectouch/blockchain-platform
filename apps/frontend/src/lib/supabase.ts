@@ -1,11 +1,18 @@
 // Supabase Client Configuration
 import { createClient } from '@supabase/supabase-js'
 
-// Environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Environment variables with fallbacks
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://aompecyfgnakkmldhidg.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbXBlY3lmZ25ha2ttbGRoaWRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3MzMwODYsImV4cCI6MjA2OTMwOTA4Nn0.SSbGerxCplUZd_ZJDCK3HrfHM_m0it2lExgKBv3bt9A'
+
+console.log('🔧 Supabase Configuration:', {
+  url: supabaseUrl,
+  hasKey: !!supabaseAnonKey,
+  env: import.meta.env.MODE
+})
 
 if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Missing Supabase environment variables')
   throw new Error('Missing Supabase environment variables')
 }
 
@@ -313,6 +320,64 @@ export const supabaseHelpers = {
       .on('postgres_changes', { event: '*', schema: 'public', table }, callback)
       .subscribe()
   }
+}
+
+// Real-time subscription helpers
+export const subscribeToCryptoPrices = (callback: (prices: any) => void) => {
+  return supabase
+    .channel('crypto_prices_channel')
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'crypto_prices' },
+      (payload) => {
+        console.log('🔄 Real-time crypto price update:', payload)
+        callback(payload.new as any)
+      }
+    )
+    .subscribe()
+}
+
+export const subscribeToDeFiProtocols = (callback: (protocols: any) => void) => {
+  return supabase
+    .channel('defi_protocols_channel')
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'defi_protocols' },
+      (payload) => {
+        console.log('🔄 Real-time DeFi protocol update:', payload)
+        callback(payload.new as any)
+      }
+    )
+    .subscribe()
+}
+
+// Database query helpers
+export const getCryptoPrices = async (limit: number = 50) => {
+  const { data, error } = await supabase
+    .from('crypto_prices')
+    .select('*')
+    .order('market_cap_rank', { ascending: true })
+    .limit(limit)
+
+  if (error) {
+    console.error('❌ Error fetching crypto prices:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export const getDeFiProtocols = async (limit: number = 20) => {
+  const { data, error } = await supabase
+    .from('defi_protocols')
+    .select('*')
+    .order('tvl', { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    console.error('❌ Error fetching DeFi protocols:', error)
+    throw error
+  }
+
+  return data || []
 }
 
 export default supabase

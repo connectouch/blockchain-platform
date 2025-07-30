@@ -4,19 +4,15 @@ project_id = "connectouch-blockchain-ai"
 
 [api]
 enabled = true
-port = 54321
 schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [auth]
 enabled = true
-port = 54324
 site_url = "http://localhost:5173"
 additional_redirect_urls = ["https://connectouch-blockchain-ai.netlify.app"]
 jwt_expiry = 3600
-refresh_token_rotation_enabled = true
-security_update_password_require_reauthentication = true
 
 [auth.email]
 enable_signup = true
@@ -33,36 +29,25 @@ enabled = false
 enabled = false
 
 [db]
-port = 54322
-shadow_port = 54320
 major_version = 15
 
 [realtime]
 enabled = true
-port = 54323
-ip_version = "ipv4"
+ip_version = "IPv4"
 
 [studio]
 enabled = true
-port = 54323
 api_url = "http://localhost:54321"
 
 [inbucket]
 enabled = true
-port = 54324
-smtp_port = 54325
-pop3_port = 54326
 
 [storage]
 enabled = true
-port = 54325
 file_size_limit = "50MiB"
-image_transformation = true
 
-[edge_functions]
+[storage.image_transformation]
 enabled = true
-port = 54326
-inspector_port = 54327
 
 [analytics]
 enabled = false
@@ -86,4 +71,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.real-time-updates]
+verify_jwt = false
+
+[functions.nft-collections]
+verify_jwt = false
+
+[functions.image-proxy]
 verify_jwt = false

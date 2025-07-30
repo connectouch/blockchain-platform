@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Newspaper, 
-  TrendingUp, 
-  TrendingDown, 
-  Clock, 
+import {
+  Newspaper,
+  TrendingUp,
+  TrendingDown,
+  Clock,
   ExternalLink,
   RefreshCw,
   AlertCircle,
   Zap
 } from 'lucide-react'
+import { NewsSourceLocalImage, NewsCategoryLocalImage } from './ui/LocalImage'
 
 interface NewsItem {
   id: string
@@ -59,7 +60,7 @@ const LiveNewsFeed: React.FC<LiveNewsFeedProps> = ({
           sentiment: 'positive',
           impact: 'high',
           category: 'Bitcoin',
-          imageUrl: 'https://via.placeholder.com/60x60/3B82F6/FFFFFF?text=BTC'
+          imageUrl: null // Will use category-based image
         },
         {
           id: '2',
@@ -71,7 +72,7 @@ const LiveNewsFeed: React.FC<LiveNewsFeedProps> = ({
           sentiment: 'positive',
           impact: 'medium',
           category: 'Ethereum',
-          imageUrl: 'https://via.placeholder.com/60x60/8B5CF6/FFFFFF?text=ETH'
+          imageUrl: null // Will use category-based image
         },
         {
           id: '3',
@@ -79,11 +80,11 @@ const LiveNewsFeed: React.FC<LiveNewsFeedProps> = ({
           summary: 'Security researchers warn of similar vulnerabilities across multiple protocols.',
           url: '#',
           publishedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(), // 45 minutes ago
-          source: 'DeFi Pulse',
+          source: 'The Block',
           sentiment: 'negative',
           impact: 'high',
           category: 'DeFi',
-          imageUrl: 'https://via.placeholder.com/60x60/EF4444/FFFFFF?text=⚠️'
+          imageUrl: null // Will use category-based image
         },
         {
           id: '4',
@@ -91,11 +92,11 @@ const LiveNewsFeed: React.FC<LiveNewsFeedProps> = ({
           summary: 'New record highlights growing adoption of the high-performance blockchain.',
           url: '#',
           publishedAt: new Date(Date.now() - 1000 * 60 * 67).toISOString(), // 67 minutes ago
-          source: 'Solana Labs',
+          source: 'CoinDesk',
           sentiment: 'positive',
           impact: 'medium',
-          category: 'Solana',
-          imageUrl: 'https://via.placeholder.com/60x60/10B981/FFFFFF?text=SOL'
+          category: 'Technology',
+          imageUrl: null // Will use category-based image
         },
         {
           id: '5',
@@ -103,11 +104,11 @@ const LiveNewsFeed: React.FC<LiveNewsFeedProps> = ({
           summary: 'Trading volume up 45% this week as blue-chip collections gain momentum.',
           url: '#',
           publishedAt: new Date(Date.now() - 1000 * 60 * 89).toISOString(), // 89 minutes ago
-          source: 'NFT Evening',
+          source: 'Decrypt',
           sentiment: 'positive',
           impact: 'low',
-          category: 'NFTs',
-          imageUrl: 'https://via.placeholder.com/60x60/F59E0B/FFFFFF?text=🎨'
+          category: 'NFT',
+          imageUrl: null // Will use category-based image
         }
       ]
 
@@ -241,13 +242,14 @@ const LiveNewsFeed: React.FC<LiveNewsFeedProps> = ({
                 className={`p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer group ${sentimentDisplay.impactClass}`}
               >
                 <div className="flex items-start gap-3">
-                  {item.imageUrl && (
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.category}
-                      className="w-10 h-10 rounded-lg flex-shrink-0"
+                  <div className="flex-shrink-0">
+                    <NewsCategoryLocalImage
+                      identifier={item.category.toLowerCase()}
+                      alt={`${item.category} news`}
+                      size="md"
+                      className="w-10 h-10 rounded-lg"
                     />
-                  )}
+                  </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
@@ -263,7 +265,15 @@ const LiveNewsFeed: React.FC<LiveNewsFeedProps> = ({
                     
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-white/50">{item.source}</span>
+                        <div className="flex items-center gap-1">
+                          <NewsSourceLocalImage
+                            identifier={item.source.toLowerCase().replace(/\s+/g, '-')}
+                            alt={`${item.source} logo`}
+                            size="xs"
+                            className="w-3 h-3 rounded"
+                          />
+                          <span className="text-xs text-white/50">{item.source}</span>
+                        </div>
                         <span className="text-xs text-white/30">•</span>
                         <div className="flex items-center gap-1">
                           <Clock className="w-3 h-3 text-white/40" />

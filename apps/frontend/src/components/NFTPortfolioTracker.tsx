@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
+import {
   Wallet,
   TrendingUp,
   TrendingDown,
@@ -20,6 +20,7 @@ import {
   Award,
   Zap
 } from 'lucide-react'
+import { NFTLocalImage } from './ui/LocalImage'
 
 interface NFTHolding {
   id: string
@@ -491,12 +492,14 @@ const NFTPortfolioTracker: React.FC<NFTPortfolioTrackerProps> = ({
                 onClick={() => setSelectedNFT(nft)}
               >
                 {/* NFT Image */}
-                <div className={`${viewMode === 'list' ? 'w-20 h-20' : 'w-full h-48'} bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden relative`}>
-                  {nft.image ? (
-                    <img src={nft.image} alt={nft.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <Crown className={`${viewMode === 'list' ? 'w-8 h-8' : 'w-16 h-16'} text-purple-400`} />
-                  )}
+                <div className={`${viewMode === 'list' ? 'w-20 h-20' : 'w-full h-48'} mb-4 overflow-hidden relative`}>
+                  <NFTLocalImage
+                    identifier={nft.contractAddress}
+                    fallbackName={nft.collectionName}
+                    alt={nft.name}
+                    size={viewMode === 'list' ? 'md' : 'xl'}
+                    className="w-full h-full"
+                  />
                   {nft.isListed && (
                     <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
                       Listed

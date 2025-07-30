@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3, Zap, Users, Database } from 'lucide-react'
+import { CryptoLocalImage } from './ui/LocalImage'
 
 import NewsFeed from './NewsFeed'
 
@@ -333,7 +334,15 @@ const RealTimeDashboard: React.FC = () => {
               className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-white">{crypto.name}</h3>
+                <div className="flex items-center gap-2">
+                  <CryptoLocalImage
+                    identifier={crypto.symbol}
+                    alt={`${crypto.symbol} logo`}
+                    size="sm"
+                    className="w-6 h-6"
+                  />
+                  <h3 className="font-semibold text-white">{crypto.name}</h3>
+                </div>
                 <span className="text-xs text-white/60">{crypto.symbol}</span>
               </div>
               

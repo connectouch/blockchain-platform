@@ -64,15 +64,27 @@ export interface AIChatMessage {
 export interface DeFiProtocol {
   id: string
   name: string
+  symbol?: string
   protocol: string
   tvl: number
   apy: number
-  riskScore: number
-  category: 'dex' | 'lending' | 'yield' | 'derivatives' | 'insurance'
+  riskScore: number | string
+  category: 'dex' | 'lending' | 'yield' | 'derivatives' | 'insurance' | 'Dexes'
   blockchain: string
   description?: string
   website?: string
   audit?: boolean
+  // Additional properties for real-time data
+  volume24h?: number
+  users?: number
+  change_1d?: number
+  change_7d?: number
+  chains?: any[]
+  logo?: string
+  url?: string
+  isRealTime?: boolean
+  lastUpdated?: string
+  chain?: string
 }
 
 export interface PortfolioPosition {
@@ -97,6 +109,7 @@ export interface NFTCollection {
   verified: boolean
   imageUrl?: string
   website?: string
+  contractAddress?: string
 }
 
 export interface NFTMetrics {
@@ -104,6 +117,47 @@ export interface NFTMetrics {
   traitCount?: number
   lastSale?: number
   estimatedValue?: number
+}
+
+// GameFi Types
+export interface PlayToEarnOpportunity {
+  id: string
+  name: string
+  game: string
+  tokenReward: string
+  estimatedEarnings: number
+  timeCommitment: string
+  difficulty: string
+  roi?: number
+}
+
+// Trading Strategy Types
+export interface TradingStrategy {
+  id: string
+  name: string
+  title?: string
+  description: string
+  riskLevel: string
+  expectedReturn: number
+  timeframe: string
+}
+
+// Real-time Data Types
+export interface RealTimeMarketData {
+  totalMarketCap: string
+  totalGrowth24h: string
+  bitcoin: { price: string; change: string }
+  ethereum: { price: string; change: string }
+  topPerformers: string[]
+  totalVolume?: number
+}
+
+// Data Source Status
+export type DataSourceStatus = {
+  name: string
+  status: 'connected' | 'disconnected' | 'loading' | 'error'
+  lastUpdate: Date
+  responseTime: number
 }
 
 // GameFi Types
@@ -166,14 +220,26 @@ export interface APIResponse<T = any> {
   error?: string
   message?: string
   timestamp?: string
+  statusCode?: number
 }
 
 // Market Data Types
 export interface MarketData {
-  totalMarketCap: string
+  totalMarketCap: string | number
   totalGrowth24h: string
   sectors: BlockchainSector[]
   timestamp: Date
+  totalVolume?: number
+  market?: {
+    totalMarketCap?: number
+    totalVolume24h?: number
+    marketCapChange24h?: number
+    btcDominance?: number
+    ethDominance?: number
+    defiTvl?: number
+    activeCoins?: number
+    markets?: number
+  }
 }
 
 // User Preferences Types

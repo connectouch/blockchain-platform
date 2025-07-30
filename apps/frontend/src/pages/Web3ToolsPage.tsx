@@ -1,11 +1,42 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
-import { Wrench, Users, Star, Globe, Code, Wallet, Search, ShoppingCart } from 'lucide-react'
+import { Wrench, Users, Star, Globe, Code, Wallet, Search, ShoppingCart, ExternalLink } from 'lucide-react'
 import { directApiService } from '../services/directApiService'
 import LoadingSpinner from '@components/LoadingSpinner'
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
 
 const Web3ToolsPage: React.FC = () => {
+  const [realTimeWeb3Data, setRealTimeWeb3Data] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(new Date())
+
+  // Initialize real-time Web3 data
+  useEffect(() => {
+    const initializeRealTimeData = async () => {
+      try {
+        await comprehensiveRealTimeService.initialize()
+
+        // Set up real-time Web3 data listener
+        comprehensiveRealTimeService.on('web3Updated', (web3Data) => {
+          setRealTimeWeb3Data(web3Data)
+          setLastUpdate(new Date())
+        })
+
+        // Get initial data
+        const initialData = comprehensiveRealTimeService.getWeb3ToolsData()
+        setRealTimeWeb3Data(initialData)
+      } catch (error) {
+        console.warn('Real-time Web3 data initialization failed:', error)
+      }
+    }
+
+    initializeRealTimeData()
+
+    return () => {
+      comprehensiveRealTimeService.removeAllListeners()
+    }
+  }, [])
+
   // Fetch Web3 tools data using direct API service
   const { data: tools = [], isLoading, error } = useQuery({
     queryKey: ['web3tools', 'tools'],
@@ -54,6 +85,52 @@ const Web3ToolsPage: React.FC = () => {
             Development tools and dApp infrastructure for Web3 builders
           </p>
         </motion.div>
+
+        {/* Real-Time Web3 Data Section */}
+        {realTimeWeb3Data.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Real-Time Web3 Metrics</h3>
+                <span className="text-sm text-green-400">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Avg Gas Price</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeWeb3Data.reduce((sum, n) => sum + n.gasPrice, 0) / realTimeWeb3Data.length).toFixed(0)} gwei
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Active Tools</p>
+                  <p className="text-2xl font-bold text-white">{realTimeWeb3Data.length}</p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">ENS Domains</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeWeb3Data.reduce((sum, n) => sum + n.ensCount, 0) / 1e6).toFixed(1)}M
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Network Status</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeWeb3Data.reduce((sum, n) => sum + n.networkHealth, 0) / realTimeWeb3Data.length).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Loading State */}
         {isLoading && (
@@ -151,6 +228,50 @@ const Web3ToolsPage: React.FC = () => {
                           Popular
                         </span>
                       </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-4 pt-4 border-t border-white/10 flex gap-2">
+                      <button
+                        onClick={() => {
+                          // Launch tool functionality
+                          console.log(`Launching ${tool.name}...`)
+                          alert(`🚀 Launching ${tool.name}!\n\nThis would open the tool interface with:\n• ${tool.description}\n• Multi-chain support\n• Real-time data\n\nTool interface coming soon!`)
+                        }}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105"
+                      >
+                        Launch Tool
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Add to favorites
+                          console.log(`Added ${tool.name} to favorites`)
+                          alert(`⭐ ${tool.name} added to favorites!`)
+                        }}
+                        className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors"
+                        title="Add to Favorites"
+                      >
+                        <Star className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Share tool
+                          if (navigator.share) {
+                            navigator.share({
+                              title: tool.name,
+                              text: tool.description,
+                              url: window.location.href
+                            })
+                          } else {
+                            navigator.clipboard.writeText(window.location.href)
+                            alert(`📋 Link to ${tool.name} copied to clipboard!`)
+                          }
+                        }}
+                        className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors"
+                        title="Share Tool"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </motion.div>

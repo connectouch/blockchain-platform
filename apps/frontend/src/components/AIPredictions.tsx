@@ -96,13 +96,13 @@ const AIPredictions: React.FC = () => {
           },
           {
             symbol: 'ETH',
-            currentPrice: pricesData.data.ethereum.usd,
+            currentPrice: (pricesData.data as any).ethereum?.usd || 2500,
             accuracy: 89.2,
             lastUpdate: new Date(),
             predictions: [
               {
                 timeframe: '24h',
-                predictedPrice: pricesData.data.ethereum.usd * (1 + (Math.random() * 0.08 - 0.04)),
+                predictedPrice: ((pricesData.data as any).ethereum?.usd || 2500) * (1 + (Math.random() * 0.08 - 0.04)),
                 confidence: 88,
                 change: 2.8,
                 reasoning: 'Layer 2 adoption and staking rewards driving positive sentiment.',
@@ -110,7 +110,7 @@ const AIPredictions: React.FC = () => {
               },
               {
                 timeframe: '7d',
-                predictedPrice: pricesData.data.ethereum.usd * (1 + (Math.random() * 0.18 - 0.09)),
+                predictedPrice: ((pricesData.data as any).ethereum?.usd || 2500) * (1 + (Math.random() * 0.18 - 0.09)),
                 confidence: 82,
                 change: 12.1,
                 reasoning: 'Ethereum 2.0 benefits and ecosystem expansion continue to drive value.',
@@ -118,7 +118,7 @@ const AIPredictions: React.FC = () => {
               },
               {
                 timeframe: '30d',
-                predictedPrice: pricesData.data.ethereum.usd * (1 + (Math.random() * 0.25 - 0.125)),
+                predictedPrice: ((pricesData.data as any).ethereum?.usd || 2500) * (1 + (Math.random() * 0.25 - 0.125)),
                 confidence: 75,
                 change: 18.9,
                 reasoning: 'Strong fundamentals but market volatility may create fluctuations.',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, RefreshCw, WifiOff, Activity } from 'lucide-react'
+import { CryptoLocalImage } from './ui/LocalImage'
 
 interface CryptoPrice {
   id: number
@@ -302,6 +303,12 @@ const PriceTicker: React.FC = () => {
               borderColor: "rgba(255,255,255,0.2)"
             }}
           >
+            <CryptoLocalImage
+              identifier={crypto.symbol}
+              alt={`${crypto.symbol} logo`}
+              size="sm"
+              className="w-6 h-6"
+            />
             <span className="text-white font-bold text-sm tracking-wide">
               {crypto.symbol}
             </span>

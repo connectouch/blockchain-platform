@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency React Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #0a0a0a; 
+            color: #00ff00; 
+        }
+        .error { background: #ff4444; color: white; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #44ff44; color: black; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .info { background: #4444ff; color: white; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        pre { background: #333; padding: 10px; border-radius: 5px; overflow-x: auto; color: #00ff00; }
+    </style>
+</head>
+<body>
+    <h1>🚨 Emergency React Diagnosis</h1>
+    <div id="results"></div>
+    <div id="root"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        const errors = [];
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        // Capture ALL errors
+        const originalError = console.error;
+        console.error = function(...args) {
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            errors.push(message);
+            log(`❌ Console Error: ${message}`, 'error');
+            originalError.apply(console, args);
+        };
+
+        window.addEventListener('error', function(e) {
+            const errorMsg = `${e.message} at ${e.filename}:${e.lineno}:${e.colno}`;
+            errors.push(errorMsg);
+            log(`❌ JavaScript Error: ${errorMsg}`, 'error');
+            if (e.error?.stack) {
+                log(`Stack: ${e.error.stack}`, 'error');
+            }
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            const errorMsg = `Unhandled Promise: ${e.reason}`;
+            errors.push(errorMsg);
+            log(`❌ ${errorMsg}`, 'error');
+        });
+
+        log('🚨 Emergency diagnosis started', 'info');
+
+        // Test 1: Try to load the main script manually
+        async function testMainScript() {
+            log('📜 Testing main script loading...', 'info');
+            
+            try {
+                // First check if the script exists
+                const response = await fetch('/assets/index-CTXA8nUr.js');
+                if (!response.ok) {
+                    log(`❌ Main script not found: ${response.status}`, 'error');
+                    return false;
+                }
+                
+                log('✅ Main script file exists', 'success');
+                
+                // Try to load it
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = '/assets/index-CTXA8nUr.js';
+                
+                return new Promise((resolve) => {
+                    script.onload = () => {
+                        log('✅ Main script loaded', 'success');
+                        
+                        // Check if React mounted after 3 seconds
+                        setTimeout(() => {
+                            const root = document.getElementById('root');
+                            if (root && root.children.length > 0) {
+                                log('🎉 React mounted successfully!', 'success');
+                                log(`Content: ${root.innerHTML.substring(0, 200)}...`, 'info');
+                            } else {
+                                log('❌ React failed to mount', 'error');
+                                log('🔍 Checking for specific errors...', 'info');
+                                
+                                if (errors.length > 0) {
+                                    log(`Found ${errors.length} errors:`, 'error');
+                                    errors.forEach((error, index) => {
+                                        log(`${index + 1}. ${error}`, 'error');
+                                    });
+                                } else {
+                                    log('No JavaScript errors detected', 'info');
+                                }
+                            }
+                            resolve(true);
+                        }, 3000);
+                    };
+                    
+                    script.onerror = (error) => {
+                        log(`❌ Script loading failed: ${error}`, 'error');
+                        resolve(false);
+                    };
+                    
+                    document.head.appendChild(script);
+                });
+                
+            } catch (error) {
+                log(`❌ Error testing main script: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Test 2: Check if we can manually create React
+        function testManualReact() {
+            log('⚛️ Testing manual React creation...', 'info');
+            
+            try {
+                // Try to create a simple React element manually
+                const testDiv = document.createElement('div');
+                testDiv.innerHTML = `
+                    <div style="
+                        padding: 20px; 
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        color: white; 
+                        border-radius: 10px; 
+                        text-align: center;
+                        margin: 20px 0;
+                    ">
+                        <h2>🔧 Manual Test</h2>
+                        <p>This is a manual DOM test to verify basic functionality</p>
+                        <p>Time: ${new Date().toISOString()}</p>
+                    </div>
+                `;
+                
+                document.getElementById('root').appendChild(testDiv);
+                log('✅ Manual DOM manipulation works', 'success');
+                
+            } catch (error) {
+                log(`❌ Manual DOM test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 3: Environment check
+        function testEnvironment() {
+            log('🔧 Environment check...', 'info');
+            
+            log(`URL: ${window.location.href}`, 'info');
+            log(`Protocol: ${window.location.protocol}`, 'info');
+            log(`User Agent: ${navigator.userAgent}`, 'info');
+            
+            // Check for module support
+            if ('noModule' in HTMLScriptElement.prototype) {
+                log('✅ ES Modules supported', 'success');
+            } else {
+                log('❌ ES Modules not supported', 'error');
+            }
+            
+            // Check for fetch
+            if (typeof fetch !== 'undefined') {
+                log('✅ Fetch API available', 'success');
+            } else {
+                log('❌ Fetch API not available', 'error');
+            }
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            testEnvironment();
+            testManualReact();
+            await testMainScript();
+            
+            log('🏁 Emergency diagnosis complete', 'info');
+            
+            if (errors.length === 0) {
+                log('🤔 No errors found - this is strange!', 'info');
+            } else {
+                log(`⚠️ Found ${errors.length} critical issues`, 'error');
+            }
+        }
+
+        // Start tests
+        setTimeout(runAllTests, 1000);
+    </script>
+</body>
+</html>

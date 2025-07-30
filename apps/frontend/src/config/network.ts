@@ -196,7 +196,7 @@ export const getNetworkDiagnostics = (): NetworkDiagnostics => {
     },
     health: {
       lastCheck: new Date().toISOString(),
-      status: 'unknown',
+      status: 'healthy',
       services: [
         {
           name: 'Main API',

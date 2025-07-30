@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, TrendingDown, Activity, X, Minimize2, Maximize2 } from 'lucide-react'
+import { CryptoLocalImage } from './ui/LocalImage'
 
 interface CryptoPrice {
   symbol: string
@@ -243,11 +244,12 @@ const FloatingPriceTicker: React.FC<FloatingPriceTickerProps> = ({
                           className="flex items-center justify-between p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-bold text-white">
-                                {coin.symbol.substring(0, 2)}
-                              </span>
-                            </div>
+                            <CryptoLocalImage
+                              identifier={coin.symbol}
+                              alt={`${coin.symbol} logo`}
+                              size="md"
+                              className="w-8 h-8"
+                            />
                             <div>
                               <div className="text-sm font-medium text-white">
                                 {coin.symbol}

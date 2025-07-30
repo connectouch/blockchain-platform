@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build:production",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "framework": "vite",
+  "alias": ["connectouch.vercel.app"],
+  "rewrites": [
+    {
+      "source": "/api/health-check",
+      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/health-check"
+    },
+    {
+      "source": "/api/crypto-prices",
+      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/crypto-prices"
+    },
+    {
+      "source": "/api/nft-collections",
+      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/nft-collections"
+    },
+    {
+      "source": "/api/ai-analysis",
+      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/ai-analysis"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/$1"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}

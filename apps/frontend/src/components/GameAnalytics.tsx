@@ -528,10 +528,22 @@ const GameAnalytics: React.FC<GameAnalyticsProps> = ({
                     Visit Website
                   </a>
                 )}
-                <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                <button
+                  onClick={() => {
+                    console.log(`Launching ${selectedGame.name} game...`)
+                    alert(`🎮 Launching ${selectedGame.name}!\n\n• Platform: ${selectedGame.platform.join(', ')}\n• Players: ${selectedGame.players.daily.toLocaleString()} daily\n• Avg Earnings: $${selectedGame.revenue.playerAverage}/day\n\nGame launcher coming soon!`)
+                  }}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+                >
                   Play Game
                 </button>
-                <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                <button
+                  onClick={() => {
+                    console.log(`Added ${selectedGame.name} to watchlist`)
+                    alert(`⭐ ${selectedGame.name} added to your GameFi watchlist!\n\nYou'll receive notifications about:\n• Price changes\n• New features\n• Earning opportunities\n• Tournament announcements`)
+                  }}
+                  className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+                >
                   Add to Watchlist
                 </button>
               </div>

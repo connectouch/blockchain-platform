@@ -47,6 +47,8 @@ import {
   RefreshCw
 } from 'lucide-react'
 
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
+
 interface DAOProject {
   id: string
   name: string
@@ -109,6 +111,8 @@ const EnhancedDAOPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState<'marketCap' | 'members' | 'treasury' | 'proposals'>('marketCap')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [realTimeDAOData, setRealTimeDAOData] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(new Date())
   const [selectedDAO, setSelectedDAO] = useState<DAOProject | null>(null)
 
   // Mock DAO data - in production this would come from APIs
@@ -315,6 +319,33 @@ const EnhancedDAOPage: React.FC = () => {
     }
   ])
 
+  // Initialize real-time DAO data
+  useEffect(() => {
+    const initializeRealTimeData = async () => {
+      try {
+        await comprehensiveRealTimeService.initialize()
+
+        // Set up real-time DAO data listener
+        comprehensiveRealTimeService.on('daoUpdated', (daoData) => {
+          setRealTimeDAOData(daoData)
+          setLastUpdate(new Date())
+        })
+
+        // Get initial data
+        const initialData = comprehensiveRealTimeService.getDAOData()
+        setRealTimeDAOData(initialData)
+      } catch (error) {
+        console.warn('Real-time DAO data initialization failed:', error)
+      }
+    }
+
+    initializeRealTimeData()
+
+    return () => {
+      comprehensiveRealTimeService.removeAllListeners()
+    }
+  }, [])
+
   const [governanceStats] = useState<GovernanceStats>({
     totalDAOs: daoProjects.length,
     totalTreasury: daoProjects.reduce((sum, dao) => sum + dao.treasuryValue, 0),
@@ -383,6 +414,54 @@ const EnhancedDAOPage: React.FC = () => {
             Participate in decentralized governance, vote on proposals, and shape the future of Web3 protocols
           </p>
         </motion.div>
+
+        {/* Real-Time DAO Data Section */}
+        {realTimeDAOData.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Real-Time DAO Metrics</h3>
+                <span className="text-sm text-green-400">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Total Treasury</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${(realTimeDAOData.reduce((sum, d) => sum + d.treasuryValue, 0) / 1e9).toFixed(2)}B
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Active Proposals</p>
+                  <p className="text-2xl font-bold text-white">
+                    {realTimeDAOData.reduce((sum, d) => sum + d.activeProposals, 0)}
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Total Members</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeDAOData.reduce((sum, d) => sum + d.members, 0) / 1e6).toFixed(1)}M
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Top DAO</p>
+                  <p className="text-lg font-bold text-white">
+                    {realTimeDAOData.sort((a, b) => b.treasuryValue - a.treasuryValue)[0]?.name.slice(0, 12)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Governance Statistics */}
         <motion.div

@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { Palette, TrendingUp, Users, Activity } from 'lucide-react'
 import ApiService from '../services/api'
 import LoadingSpinner from '@components/LoadingSpinner'
 import { useAIContext } from '../contexts/AIAssistantContext'
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
 
 // Rich Content Components for NFT
 import NFTCollectionAnalytics from '../components/NFTCollectionAnalytics'
@@ -15,10 +16,39 @@ import NFTEducationalHub from '../components/NFTEducationalHub'
 
 const NFTPage: React.FC = () => {
   const { setAIContext } = useAIContext()
+  const [realTimeCollections, setRealTimeCollections] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(new Date())
 
   // Set AI context for NFT page
   useEffect(() => {
     setAIContext('nft', { page: 'nft', collections: [] })
+  }, [])
+
+  // Initialize real-time NFT data
+  useEffect(() => {
+    const initializeRealTimeData = async () => {
+      try {
+        await comprehensiveRealTimeService.initialize()
+
+        // Set up real-time NFT data listener
+        comprehensiveRealTimeService.on('nftUpdated', (nftCollections) => {
+          setRealTimeCollections(nftCollections)
+          setLastUpdate(new Date())
+        })
+
+        // Get initial data
+        const initialCollections = comprehensiveRealTimeService.getNFTCollections()
+        setRealTimeCollections(initialCollections)
+      } catch (error) {
+        console.warn('Real-time NFT data initialization failed:', error)
+      }
+    }
+
+    initializeRealTimeData()
+
+    return () => {
+      comprehensiveRealTimeService.removeAllListeners()
+    }
   }, [])
   // Fetch NFT collections data
   const { data: collectionsData, isLoading, error } = useQuery({
@@ -46,6 +76,52 @@ const NFTPage: React.FC = () => {
             Discover, analyze, and track NFT collections with AI-powered insights
           </p>
         </motion.div>
+
+        {/* Real-Time NFT Data Section */}
+        {realTimeCollections.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Real-Time NFT Metrics</h3>
+                <span className="text-sm text-green-400">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Total Volume</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeCollections.reduce((sum, c) => sum + c.volume24h, 0)).toFixed(1)} ETH
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Collections</p>
+                  <p className="text-2xl font-bold text-white">{realTimeCollections.length}</p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Avg Floor</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeCollections.reduce((sum, c) => sum + c.floorPrice, 0) / realTimeCollections.length).toFixed(2)} ETH
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Top Collection</p>
+                  <p className="text-lg font-bold text-white">
+                    {realTimeCollections.sort((a, b) => b.volume24h - a.volume24h)[0]?.name.slice(0, 10)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Loading State */}
         {isLoading && (

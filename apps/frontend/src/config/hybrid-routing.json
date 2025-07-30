@@ -1,0 +1,23 @@
+{
+  "routing": {
+    "primary": {
+      "api": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1",
+      "database": "https://aompecyfgnakkmldhidg.supabase.co",
+      "realtime": "wss://aompecyfgnakkmldhidg.supabase.co/realtime/v1"
+    },
+    "fallback": {
+      "api": "https://api.coingecko.com/api/v3",
+      "static": "https://connectouch-blockchain-ai.netlify.app"
+    },
+    "overflow": {
+      "api": "https://connectouch-blockchain-ai.vercel.app/api",
+      "static": "https://connectouch-blockchain-ai.vercel.app"
+    }
+  },
+  "loadBalancing": {
+    "strategy": "round-robin",
+    "healthCheck": true,
+    "failover": true,
+    "retryAttempts": 3
+  }
+}

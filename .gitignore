@@ -140,3 +140,5 @@ test-results.xml
 
 # Local Netlify folder
 .netlify
+
+.vercel

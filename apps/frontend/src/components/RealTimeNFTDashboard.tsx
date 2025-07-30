@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Image, 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  Activity, 
-  Zap, 
+import {
+  Image,
+  TrendingUp,
+  TrendingDown,
+  Users,
+  Activity,
+  Zap,
   Eye,
   Wifi,
   WifiOff,
@@ -16,6 +16,7 @@ import {
   DollarSign
 } from 'lucide-react'
 import { useRealTimeNFTs, useRealTimeMarketData } from '../hooks/useRealTimeData'
+import { NFTLocalImage } from './ui/LocalImage'
 
 interface NFTCollection {
   id: string
@@ -290,13 +291,13 @@ const RealTimeNFTDashboard: React.FC = () => {
 
               {/* Collection Header */}
               <div className="flex items-center gap-3 mb-4">
-                {collection.image ? (
-                  <img src={collection.image} alt={collection.name} className="w-12 h-12 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
-                    <Image className="w-6 h-6 text-white" />
-                  </div>
-                )}
+                <NFTLocalImage
+                  identifier={collection.contractAddress || collection.id}
+                  fallbackName={collection.name}
+                  alt={collection.name}
+                  size="lg"
+                  className="w-12 h-12"
+                />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg font-semibold text-white">{collection.name}</h3>

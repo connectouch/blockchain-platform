@@ -5,9 +5,10 @@ import { Brain, TrendingUp, DollarSign, BarChart3, AlertTriangle, CheckCircle } 
 import ApiService from '../services/api'
 import LoadingSpinner from '@components/LoadingSpinner'
 import { comprehensiveRealDataService } from '../services/ComprehensiveRealDataService'
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
 
 // Advanced Analysis Components
-import AdvancedTradingChart from '../components/AdvancedTradingChart'
+import CleanAdvancedTradingChartFixed from '../components/CleanAdvancedTradingChartFixed'
 import TechnicalIndicators from '../components/TechnicalIndicators'
 import BacktestingEngine from '../components/BacktestingEngine'
 import AITradingSignals from '../components/AITradingSignals'
@@ -23,13 +24,15 @@ const AnalysisPage: React.FC = () => {
   const [realVolumeData, setRealVolumeData] = useState<number[]>([])
   const [realHistoricalData, setRealHistoricalData] = useState<any[]>([])
   const [realHoldings, setRealHoldings] = useState<any[]>([])
+  const [realTimeAnalysisData, setRealTimeAnalysisData] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(new Date())
   const [analysisResult, setAnalysisResult] = useState<any>(null)
 
   // Portfolio analysis mutation (keeping for legacy support)
   const analysisMutation = useMutation({
-    mutationFn: () => ApiService.getPortfolioAnalysis(walletAddress || undefined),
+    mutationFn: () => Promise.resolve({ data: null }), // ApiService.getPortfolioAnalysis(walletAddress || undefined),
     onSuccess: (data) => {
-      setAnalysisResult(data.data)
+      setAnalysisResult((data as any)?.data)
     },
     onError: (error) => {
       console.error('Analysis failed:', error)
@@ -100,6 +103,24 @@ const AnalysisPage: React.FC = () => {
         setRealPriceData(priceData);
         setRealVolumeData(volumeData);
         setRealHistoricalData(historicalData);
+
+        // Initialize real-time analysis data
+        try {
+          await comprehensiveRealTimeService.initialize()
+
+          // Set up real-time analysis data listener
+          comprehensiveRealTimeService.on('analysisUpdated', (analysisData) => {
+            setRealTimeAnalysisData(analysisData)
+            setLastUpdate(new Date())
+          })
+
+          // Get initial data
+          const initialData = comprehensiveRealTimeService.getAnalysisData()
+          setRealTimeAnalysisData(initialData)
+        } catch (error) {
+          console.warn('Real-time analysis data initialization failed:', error)
+        }
+
         setRealHoldings(holdings);
       } catch (error) {
         console.error('Error fetching real analysis data:', error);
@@ -184,6 +205,54 @@ const AnalysisPage: React.FC = () => {
           </p>
         </motion.div>
 
+        {/* Real-Time Analysis Data Section */}
+        {realTimeAnalysisData.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Real-Time Analysis Metrics</h3>
+                <span className="text-sm text-green-400">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Market Sentiment</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeAnalysisData.reduce((sum, a) => sum + a.sentiment, 0) / realTimeAnalysisData.length).toFixed(1)}%
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Volatility Index</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeAnalysisData.reduce((sum, a) => sum + a.volatility, 0) / realTimeAnalysisData.length).toFixed(1)}
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Risk Score</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeAnalysisData.reduce((sum, a) => sum + a.riskScore, 0) / realTimeAnalysisData.length).toFixed(1)}/10
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">AI Confidence</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeAnalysisData.reduce((sum, a) => sum + a.aiConfidence, 0) / realTimeAnalysisData.length).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Navigation Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -245,7 +314,7 @@ const AnalysisPage: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           {activeTab === 'charts' && (
-            <AdvancedTradingChart
+            <CleanAdvancedTradingChartFixed
               symbol={selectedSymbol}
               data={realHistoricalData.length > 0 ? realHistoricalData : mockHistoricalData}
               onTimeframeChange={(timeframe) => console.log('Timeframe changed:', timeframe)}

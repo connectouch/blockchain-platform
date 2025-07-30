@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  PieChart, 
-  Activity, 
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  PieChart,
+  Activity,
   AlertTriangle,
   Wifi,
   WifiOff,
@@ -15,9 +15,13 @@ import {
   Eye,
   EyeOff,
   Target,
-  Zap
+  Zap,
+  LogIn
 } from 'lucide-react'
 import { useRealTimePrices, useRealTimeMarketData, useRealTimeDeFi } from '../hooks/useRealTimeData'
+import { useAuth } from '../contexts/AuthContext'
+import { usePortfolio } from '../hooks/usePortfolio'
+import { AddHoldingModal } from './portfolio/AddHoldingModal'
 
 interface PortfolioAsset {
   id: string
@@ -45,115 +49,49 @@ interface PortfolioMetrics {
 }
 
 const RealTimePortfolioTracker: React.FC = () => {
+  const { user } = useAuth()
   const { prices, isLoading: pricesLoading } = useRealTimePrices([
     'bitcoin', 'ethereum', 'binancecoin', 'cardano', 'solana', 'polkadot', 'chainlink', 'uniswap'
   ])
   const { marketData, isConnected } = useRealTimeMarketData()
   const { protocols } = useRealTimeDeFi()
-  
-  const [portfolio, setPortfolio] = useState<PortfolioAsset[]>([])
+  const { portfolio, summary, loading: portfolioLoading, error: portfolioError } = usePortfolio()
+
   const [showValues, setShowValues] = useState(true)
   const [selectedTimeframe, setSelectedTimeframe] = useState('24h')
-  const [isLoading, setIsLoading] = useState(true)
+  const [showAddHoldingModal, setShowAddHoldingModal] = useState(false)
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false)
 
-  // Mock portfolio data (in production, this would come from user's wallet/account)
-  useEffect(() => {
-    const generateMockPortfolio = (): PortfolioAsset[] => {
-      const mockAssets = [
-        { symbol: 'bitcoin', name: 'Bitcoin', amount: 0.5, purchasePrice: 40000, type: 'crypto' as const },
-        { symbol: 'ethereum', name: 'Ethereum', amount: 2.3, purchasePrice: 2200, type: 'crypto' as const },
-        { symbol: 'binancecoin', name: 'BNB', amount: 5.0, purchasePrice: 280, type: 'crypto' as const },
-        { symbol: 'cardano', name: 'Cardano', amount: 1000, purchasePrice: 0.45, type: 'crypto' as const },
-        { symbol: 'solana', name: 'Solana', amount: 15, purchasePrice: 120, type: 'crypto' as const },
-        { symbol: 'polkadot', name: 'Polkadot', amount: 50, purchasePrice: 18, type: 'crypto' as const },
-        { symbol: 'chainlink', name: 'Chainlink', amount: 100, purchasePrice: 22, type: 'crypto' as const },
-        { symbol: 'uniswap', name: 'Uniswap', amount: 80, purchasePrice: 8.5, type: 'crypto' as const }
-      ]
+  const isLoading = pricesLoading || portfolioLoading
 
-      return mockAssets.map((asset, index) => {
-        const currentPrice = prices[asset.symbol]?.usd || asset.purchasePrice
-        const value = asset.amount * currentPrice
-        const change24h = prices[asset.symbol]?.usd_24h_change || 0
-        const pnl = (currentPrice - asset.purchasePrice) * asset.amount
-        const pnlPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100
-
-        return {
-          id: `${asset.symbol}-${index}`,
-          symbol: asset.symbol.toUpperCase(),
-          name: asset.name,
-          amount: asset.amount,
-          currentPrice,
-          purchasePrice: asset.purchasePrice,
-          value,
-          change24h,
-          changePercent: change24h,
-          allocation: 0, // Will be calculated after all assets
-          type: asset.type,
-          isRealTime: !!prices[asset.symbol]
-        }
-      })
+  // Handle add holding button click
+  const handleAddHolding = () => {
+    if (!user) {
+      // Show auth prompt for non-authenticated users
+      setShowAuthPrompt(true)
+      return
     }
-
-    if (Object.keys(prices).length > 0) {
-      const mockPortfolio = generateMockPortfolio()
-      const totalValue = mockPortfolio.reduce((sum, asset) => sum + asset.value, 0)
-      
-      // Calculate allocations
-      const portfolioWithAllocations = mockPortfolio.map(asset => ({
-        ...asset,
-        allocation: (asset.value / totalValue) * 100
-      }))
-
-      setPortfolio(portfolioWithAllocations)
-      setIsLoading(false)
-    }
-  }, [prices])
-
-  // Calculate portfolio metrics
-  const calculateMetrics = (): PortfolioMetrics => {
-    if (portfolio.length === 0) {
-      return {
-        totalValue: 0,
-        totalChange24h: 0,
-        totalChangePercent: 0,
-        totalPnL: 0,
-        totalPnLPercent: 0,
-        bestPerformer: null,
-        worstPerformer: null
-      }
-    }
-
-    const totalValue = portfolio.reduce((sum, asset) => sum + asset.value, 0)
-    const totalPurchaseValue = portfolio.reduce((sum, asset) => sum + (asset.amount * asset.purchasePrice), 0)
-    const totalPnL = totalValue - totalPurchaseValue
-    const totalPnLPercent = (totalPnL / totalPurchaseValue) * 100
-
-    // Calculate weighted 24h change
-    const totalChange24h = portfolio.reduce((sum, asset) => {
-      const weight = asset.value / totalValue
-      return sum + (asset.changePercent * weight)
-    }, 0)
-
-    const bestPerformer = portfolio.reduce((best, current) => 
-      current.changePercent > (best?.changePercent || -Infinity) ? current : best
-    )
-
-    const worstPerformer = portfolio.reduce((worst, current) => 
-      current.changePercent < (worst?.changePercent || Infinity) ? current : worst
-    )
-
-    return {
-      totalValue,
-      totalChange24h,
-      totalChangePercent: totalChange24h,
-      totalPnL,
-      totalPnLPercent,
-      bestPerformer,
-      worstPerformer
-    }
+    setShowAddHoldingModal(true)
   }
 
-  const metrics = calculateMetrics()
+  // Use real portfolio summary or create empty metrics
+  const metrics: PortfolioMetrics = summary ? {
+    totalValue: summary.totalValue,
+    totalChange24h: 0, // Will be calculated from individual assets
+    totalChangePercent: 0, // Will be calculated from individual assets
+    totalPnL: summary.totalPnl,
+    totalPnLPercent: summary.totalPnlPercent,
+    bestPerformer: summary.bestPerformer,
+    worstPerformer: summary.worstPerformer
+  } : {
+    totalValue: 0,
+    totalChange24h: 0,
+    totalChangePercent: 0,
+    totalPnL: 0,
+    totalPnLPercent: 0,
+    bestPerformer: null,
+    worstPerformer: null
+  }
 
   const formatNumber = (num: number, prefix = '') => {
     if (num >= 1e6) return `${prefix}${(num / 1e6).toFixed(2)}M`
@@ -187,7 +125,15 @@ const RealTimePortfolioTracker: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-white mb-2">Real-Time Portfolio</h2>
-          <p className="text-white/60">Live portfolio tracking and performance analytics</p>
+          <p className="text-white/60">
+            {user ? 'Your personal portfolio with real-time tracking' : 'Live portfolio tracking with real-time prices'}
+          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+            <span className="text-blue-400 text-sm font-medium">
+              {user ? `${portfolio.length} Holdings • Live Prices` : 'Sign in to track your portfolio'}
+            </span>
+          </div>
         </div>
         
         <div className="flex items-center gap-4">
@@ -209,6 +155,15 @@ const RealTimePortfolioTracker: React.FC = () => {
               </>
             )}
           </div>
+
+          {/* Add Holding Button */}
+          <button
+            onClick={handleAddHolding}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Holding</span>
+          </button>
 
           {/* Privacy Toggle */}
           <button
@@ -386,13 +341,79 @@ const RealTimePortfolioTracker: React.FC = () => {
 
         {/* Empty State */}
         {!isLoading && portfolio.length === 0 && (
-          <div className="text-center py-8">
-            <PieChart className="w-12 h-12 text-white/40 mx-auto mb-4" />
-            <p className="text-white/60 mb-2">No portfolio assets found</p>
-            <p className="text-white/40 text-sm">Connect your wallet to track your portfolio</p>
+          <div className="text-center py-12">
+            <PieChart className="w-16 h-16 text-white/40 mx-auto mb-4" />
+            {user ? (
+              <>
+                <p className="text-white/60 mb-2 text-lg">Your portfolio is empty</p>
+                <p className="text-white/40 text-sm mb-6">Add your first cryptocurrency holding to get started</p>
+                <button
+                  onClick={() => setShowAddHoldingModal(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Your First Holding
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-white/60 mb-2 text-lg">Track Your Portfolio</p>
+                <p className="text-white/40 text-sm mb-6">Sign in to add and track your cryptocurrency holdings</p>
+                <button
+                  onClick={() => setShowAuthPrompt(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In to Get Started
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
+
+      {/* Add Holding Modal */}
+      <AddHoldingModal
+        isOpen={showAddHoldingModal}
+        onClose={() => setShowAddHoldingModal(false)}
+        onSuccess={() => {
+          setShowAddHoldingModal(false)
+          // Portfolio will automatically refresh via real-time subscription
+        }}
+      />
+
+      {/* Authentication Prompt Modal */}
+      {showAuthPrompt && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-gray-700">
+            <div className="text-center">
+              <LogIn className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">Sign In Required</h3>
+              <p className="text-gray-400 mb-6">
+                Create an account or sign in to track your personal cryptocurrency portfolio with real-time updates.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowAuthPrompt(false)}
+                  className="flex-1 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAuthPrompt(false)
+                    // Navigate to auth page - you can implement this based on your routing
+                    window.location.href = '/auth'
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Sign In
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

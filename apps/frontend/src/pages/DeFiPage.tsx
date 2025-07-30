@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { DollarSign, TrendingUp, Shield, Zap, Activity, Users, BarChart3 } from 'lucide-react'
 import { directApiService } from '../services/directApiService'
 import LoadingSpinner from '@components/LoadingSpinner'
 import { useAIContext } from '../contexts/AIAssistantContext'
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
 
 // Rich Content Components for DeFi
 import ProtocolDeepDive from '../components/ProtocolDeepDive'
@@ -14,10 +15,39 @@ import DeFiEducationalHub from '../components/DeFiEducationalHub'
 
 const DeFiPage: React.FC = () => {
   const { setAIContext } = useAIContext()
+  const [realTimeProtocols, setRealTimeProtocols] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(new Date())
 
   // Set AI context for DeFi page
   useEffect(() => {
     setAIContext('defi', { page: 'defi', protocols: [] })
+  }, [])
+
+  // Initialize real-time DeFi data
+  useEffect(() => {
+    const initializeRealTimeData = async () => {
+      try {
+        await comprehensiveRealTimeService.initialize()
+
+        // Set up real-time DeFi data listener
+        comprehensiveRealTimeService.on('defiUpdated', (defiProtocols) => {
+          setRealTimeProtocols(defiProtocols)
+          setLastUpdate(new Date())
+        })
+
+        // Get initial data
+        const initialProtocols = comprehensiveRealTimeService.getDeFiProtocols()
+        setRealTimeProtocols(initialProtocols)
+      } catch (error) {
+        console.warn('Real-time DeFi data initialization failed:', error)
+      }
+    }
+
+    initializeRealTimeData()
+
+    return () => {
+      comprehensiveRealTimeService.removeAllListeners()
+    }
   }, [])
   // Fetch DeFi protocols data using direct API service
   const { data: protocols = [], isLoading, error } = useQuery({
@@ -61,6 +91,52 @@ const DeFiPage: React.FC = () => {
               <p className="text-white/70">Unable to fetch protocol data. Please try again later.</p>
             </div>
           </div>
+        )}
+
+        {/* Real-Time DeFi Data Section */}
+        {realTimeProtocols.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Real-Time DeFi Metrics</h3>
+                <span className="text-sm text-green-400">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Total TVL</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${(realTimeProtocols.reduce((sum, p) => sum + p.tvl, 0) / 1e9).toFixed(2)}B
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Protocols</p>
+                  <p className="text-2xl font-bold text-white">{realTimeProtocols.length}</p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Avg APY</p>
+                  <p className="text-2xl font-bold text-white">
+                    {(realTimeProtocols.reduce((sum, p) => sum + p.apy, 0) / realTimeProtocols.length).toFixed(1)}%
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Top Protocol</p>
+                  <p className="text-lg font-bold text-white">
+                    {realTimeProtocols.sort((a, b) => b.tvl - a.tvl)[0]?.name.slice(0, 10)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
 
         {/* DeFi Protocols Grid */}

@@ -55,7 +55,6 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: process.env.NODE_ENV !== 'production',
     minify: 'esbuild',
     target: 'es2020',
     rollupOptions: {
@@ -67,16 +66,64 @@ export default defineConfig({
           web3: ['web3', 'wagmi', 'viem'],
           utils: ['axios', 'clsx', 'tailwind-merge'],
           charts: ['recharts', 'lightweight-charts', 'd3'],
+          // Split large libraries further to improve caching
+          crypto: ['ethers', 'web3-utils'],
+          analytics: ['d3-array', 'd3-scale', 'd3-shape'],
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
       },
+      external: [
+        // Exclude server-side dependencies from browser bundle
+        '@prisma/client',
+        'prisma',
+        'pg',
+        'bcryptjs',
+        'jsonwebtoken',
+        'redis',
+        '@redis/client',
+        'node:crypto',
+        'node:events',
+        'node:net',
+        'node:tls',
+        'node:url',
+        'node:timers/promises',
+        'stream',
+        'net',
+        'tls',
+        'dns',
+        'crypto',
+        'fs',
+        'path'
+      ]
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1500, // Increased for full features
+    // Enhanced compression and optimization for full platform
+    cssCodeSplit: true,
+    assetsInlineLimit: 4096, // Inline small assets to reduce requests
+    // Enhanced build options for full feature set
+    reportCompressedSize: true,
+    sourcemap: process.env.NODE_ENV === 'development'
   },
-  base: './',
+  base: '/',
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', 'react-is'],
+    exclude: [
+      // Exclude server-side dependencies
+      '@prisma/client',
+      'pg',
+      'bcryptjs',
+      'jsonwebtoken',
+      'redis'
+    ]
+  },
+  define: {
+    // Remove Node.js globals that cause issues in browser
+    global: 'globalThis',
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    // Enhanced feature flags
+    'process.env.VITE_FULL_FEATURES': JSON.stringify(process.env.VITE_FULL_FEATURES || 'true'),
+    'process.env.VITE_BUILD_TARGET': JSON.stringify(process.env.VITE_BUILD_TARGET || 'full')
   },
 })

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Briefcase,
@@ -26,9 +26,12 @@ import AutomatedRebalancing from '../components/AutomatedRebalancing'
 import RiskManagementDashboard from '../components/RiskManagementDashboard'
 import YieldOptimizationHub from '../components/YieldOptimizationHub'
 import AIPortfolioInsights from '../components/AIPortfolioInsights'
+import { comprehensiveRealTimeService } from '../services/comprehensiveRealTimeService'
 
 const PortfolioPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'tracker' | 'performance' | 'tax' | 'rebalancing' | 'risk' | 'yield' | 'ai'>('overview')
+  const [realTimePrices, setRealTimePrices] = useState([])
+  const [lastUpdate, setLastUpdate] = useState(new Date())
   const [portfolioData] = useState({
     totalValue: 50000,
     dayChange: 1250,
@@ -78,6 +81,33 @@ const PortfolioPage: React.FC = () => {
   const [timeframe, setTimeframe] = useState('1M')
   const [showPrivateData, setShowPrivateData] = useState(true)
 
+  // Initialize real-time portfolio data
+  useEffect(() => {
+    const initializeRealTimeData = async () => {
+      try {
+        await comprehensiveRealTimeService.initialize()
+
+        // Set up real-time price data listener
+        comprehensiveRealTimeService.on('pricesUpdated', (prices) => {
+          setRealTimePrices(prices)
+          setLastUpdate(new Date())
+        })
+
+        // Get initial data
+        const initialPrices = comprehensiveRealTimeService.getPrices()
+        setRealTimePrices(initialPrices)
+      } catch (error) {
+        console.warn('Real-time portfolio data initialization failed:', error)
+      }
+    }
+
+    initializeRealTimeData()
+
+    return () => {
+      comprehensiveRealTimeService.removeAllListeners()
+    }
+  }, [])
+
   // Format currency
   const formatCurrency = (value: number): string => {
     return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -114,6 +144,54 @@ const PortfolioPage: React.FC = () => {
             Professional-grade portfolio tracking, analytics, and optimization powered by AI
           </p>
         </motion.div>
+
+        {/* Real-Time Portfolio Metrics */}
+        {realTimePrices.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Real-Time Market Data</h3>
+                <span className="text-sm text-green-400">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">Total Market Cap</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${(realTimePrices.reduce((sum, p) => sum + p.marketCap, 0) / 1e12).toFixed(2)}T
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">24h Volume</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${(realTimePrices.reduce((sum, p) => sum + p.volume24h, 0) / 1e9).toFixed(1)}B
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">BTC Price</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${realTimePrices.find(p => p.symbol === 'BITCOIN')?.price.toLocaleString() || 'N/A'}
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-white/60 text-sm">ETH Price</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${realTimePrices.find(p => p.symbol === 'ETHEREUM')?.price.toLocaleString() || 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Portfolio Overview Cards */}
         <motion.div
@@ -163,7 +241,12 @@ const PortfolioPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <select
               value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
+              onChange={(e) => {
+                setTimeframe(e.target.value)
+                console.log(`Portfolio timeframe changed to: ${e.target.value}`)
+                // Add logic to fetch data for the selected timeframe
+                // This would trigger a re-fetch of portfolio performance data
+              }}
               className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-400"
             >
               <option value="1D" className="bg-gray-800">1 Day</option>
@@ -171,6 +254,7 @@ const PortfolioPage: React.FC = () => {
               <option value="1M" className="bg-gray-800">1 Month</option>
               <option value="3M" className="bg-gray-800">3 Months</option>
               <option value="1Y" className="bg-gray-800">1 Year</option>
+              <option value="ALL" className="bg-gray-800">All Time</option>
             </select>
           </div>
           
@@ -186,13 +270,49 @@ const PortfolioPage: React.FC = () => {
               {showPrivateData ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               {showPrivateData ? 'Hide' : 'Show'} Values
             </button>
-            <button className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors">
+            <button
+              onClick={() => {
+                // Refresh portfolio data
+                console.log('Refreshing portfolio data...')
+                // Add actual refresh logic here
+                window.location.reload()
+              }}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
+              title="Refresh Portfolio Data"
+            >
               <RefreshCw className="w-4 h-4" />
             </button>
-            <button className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors">
+            <button
+              onClick={() => {
+                // Export portfolio data
+                const portfolioReport = {
+                  totalValue: portfolioData.totalValue,
+                  holdings: portfolioData.holdings,
+                  exportDate: new Date().toISOString(),
+                  timeframe: timeframe
+                }
+                const dataStr = JSON.stringify(portfolioReport, null, 2)
+                const dataBlob = new Blob([dataStr], {type: 'application/json'})
+                const url = URL.createObjectURL(dataBlob)
+                const link = document.createElement('a')
+                link.href = url
+                link.download = `portfolio-report-${new Date().toISOString().split('T')[0]}.json`
+                link.click()
+                URL.revokeObjectURL(url)
+              }}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
+              title="Export Portfolio Report"
+            >
               <Download className="w-4 h-4" />
             </button>
-            <button className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors">
+            <button
+              onClick={() => {
+                // Open portfolio settings modal
+                alert('Portfolio Settings:\n\n• Currency: USD\n• Update Frequency: Real-time\n• Privacy Mode: ' + (showPrivateData ? 'Off' : 'On') + '\n• Notifications: Enabled\n\nSettings panel coming soon!')
+              }}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
+              title="Portfolio Settings"
+            >
               <Settings className="w-4 h-4" />
             </button>
           </div>

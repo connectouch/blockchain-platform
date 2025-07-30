@@ -338,6 +338,47 @@ app.get('/api/v2/blockchain/nft/collections', (req, res) => {
   });
 });
 
+// Helper function to get crypto logo from CoinMarketCap API
+async function getCryptoLogoFromCMC(symbol) {
+  const CMC_API_KEY = process.env.VITE_COINMARKETCAP_API_KEY || 'd714f7e6-91a5-47ac-866e-f28f26eee302';
+
+  try {
+    const response = await fetch(`https://pro-api.coinmarketcap.com/v1/cryptocurrency/info?symbol=${symbol}`, {
+      headers: {
+        'X-CMC_PRO_API_KEY': CMC_API_KEY,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.data && data.data[symbol] && data.data[symbol].logo) {
+        return data.data[symbol].logo;
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch logo for ${symbol}:`, error.message);
+  }
+
+  // Generate fallback SVG logo
+  return generateGameFallbackLogo(symbol);
+}
+
+// Generate fallback logo for GameFi
+function generateGameFallbackLogo(symbol) {
+  const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+  const color = colors[symbol.length % colors.length];
+  const letter = symbol.charAt(0).toUpperCase();
+
+  return `data:image/svg+xml,${encodeURIComponent(`
+    <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="32" cy="32" r="30" fill="${color}"/>
+      <circle cx="32" cy="32" r="20" fill="none" stroke="white" stroke-width="2"/>
+      <text x="32" y="42" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">${letter}</text>
+    </svg>
+  `)}`;
+}
+
 // GameFi Projects endpoint
 app.get('/api/v2/blockchain/gamefi/projects', (req, res) => {
   console.log('🎮 GameFi projects requested');
@@ -358,7 +399,8 @@ app.get('/api/v2/blockchain/gamefi/projects', (req, res) => {
       description: 'Leading play-to-earn game with Axie creatures',
       status: 'Live',
       launched: '2018',
-      averageEarnings: 150
+      averageEarnings: 150,
+      image: generateGameFallbackLogo('AXS')
     },
     {
       id: 'the-sandbox',
@@ -375,7 +417,8 @@ app.get('/api/v2/blockchain/gamefi/projects', (req, res) => {
       description: 'Virtual world for creating and monetizing gaming experiences',
       status: 'Live',
       launched: '2020',
-      averageEarnings: 75
+      averageEarnings: 75,
+      image: generateGameFallbackLogo('SAND')
     },
     {
       id: 'decentraland',
@@ -392,7 +435,8 @@ app.get('/api/v2/blockchain/gamefi/projects', (req, res) => {
       description: 'Virtual reality platform powered by Ethereum',
       status: 'Live',
       launched: '2020',
-      averageEarnings: 45
+      averageEarnings: 45,
+      image: generateGameFallbackLogo('MANA')
     },
     {
       id: 'gala',
@@ -409,7 +453,8 @@ app.get('/api/v2/blockchain/gamefi/projects', (req, res) => {
       description: 'Blockchain gaming ecosystem with multiple games',
       status: 'Live',
       launched: '2019',
-      averageEarnings: 95
+      averageEarnings: 95,
+      image: generateGameFallbackLogo('GALA')
     }
   ];
 

@@ -150,7 +150,7 @@ const SimpleTradingCharts: React.FC<SimpleTradingChartsProps> = ({
         <SimpleChart 
           symbol={selectedSymbol} 
           timeframe={selectedTimeframe}
-          height="100%"
+          height={400}
           className="w-full"
         />
       </div>
