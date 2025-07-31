@@ -14,12 +14,22 @@ const SUPABASE_PROJECT_REF = 'aompecyfgnakkmldhidg';
 const SUPABASE_URL = 'https://aompecyfgnakkmldhidg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbXBlY3lmZ25ha2ttbGRoaWRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3MzMwODYsImV4cCI6MjA2OTMwOTA4Nn0.SSbGerxCplUZd_ZJDCK3HrfHM_m0it2lExgKBv3bt9A';
 
-// API Keys for Edge Functions
+// API Keys for Edge Functions - Load from environment variables
 const API_KEYS = {
-  OPENAI_API_KEY: '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',
-  ALCHEMY_API_KEY: 'alcht_4VtVtdF68sMtNaLupR7oPQ1wDSFNc4',
-  COINMARKETCAP_API_KEY: 'd714f7e6-91a5-47ac-866e-f28f26eee302'
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+  ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || '',
+  COINMARKETCAP_API_KEY: process.env.COINMARKETCAP_API_KEY || ''
 };
+
+// Validate required API keys
+const requiredKeys = ['OPENAI_API_KEY', 'ALCHEMY_API_KEY', 'COINMARKETCAP_API_KEY'];
+const missingKeys = requiredKeys.filter(key => !process.env[key]);
+
+if (missingKeys.length > 0) {
+  console.error('❌ Missing required environment variables:', missingKeys.join(', '));
+  console.error('Please set these environment variables before deploying edge functions.');
+  process.exit(1);
+}
 
 // Functions to deploy
 const FUNCTIONS = [
