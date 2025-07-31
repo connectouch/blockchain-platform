@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aggressive Debug - Find Exact Error</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            padding: 20px; 
+            background: #000; 
+            color: #00ff00; 
+            line-height: 1.4;
+        }
+        .error { background: #ff0000; color: white; padding: 10px; margin: 5px 0; border-radius: 3px; }
+        .success { background: #00ff00; color: black; padding: 10px; margin: 5px 0; border-radius: 3px; }
+        .info { background: #0066ff; color: white; padding: 10px; margin: 5px 0; border-radius: 3px; }
+        .warning { background: #ffaa00; color: black; padding: 10px; margin: 5px 0; border-radius: 3px; }
+        pre { background: #333; padding: 10px; overflow-x: auto; font-size: 12px; }
+        .stack { background: #660000; color: #ffcccc; padding: 10px; margin: 5px 0; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 AGGRESSIVE DEBUG - FIND EXACT ERROR</h1>
+    <div id="output"></div>
+
+    <script>
+        const output = document.getElementById('output');
+        const allErrors = [];
+        const allWarnings = [];
+        const allLogs = [];
+        
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            output.appendChild(div);
+            console.log(`[${type.toUpperCase()}] ${msg}`);
+        }
+
+        // CAPTURE EVERYTHING
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info,
+            debug: console.debug
+        };
+
+        // Override ALL console methods
+        console.error = function(...args) {
+            const msg = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            allErrors.push(msg);
+            log(`CONSOLE ERROR: ${msg}`, 'error');
+            originalConsole.error.apply(console, args);
+        };
+
+        console.warn = function(...args) {
+            const msg = args.join(' ');
+            allWarnings.push(msg);
+            log(`CONSOLE WARN: ${msg}`, 'warning');
+            originalConsole.warn.apply(console, args);
+        };
+
+        console.log = function(...args) {
+            const msg = args.join(' ');
+            allLogs.push(msg);
+            if (msg.includes('error') || msg.includes('Error') || msg.includes('fail')) {
+                log(`CONSOLE LOG (ERROR-LIKE): ${msg}`, 'error');
+            } else {
+                log(`CONSOLE LOG: ${msg}`, 'info');
+            }
+            originalConsole.log.apply(console, args);
+        };
+
+        // Capture ALL errors
+        window.onerror = function(msg, file, line, col, error) {
+            const errorMsg = `JS ERROR: ${msg} at ${file}:${line}:${col}`;
+            allErrors.push(errorMsg);
+            log(errorMsg, 'error');
+            if (error && error.stack) {
+                log(`STACK TRACE: ${error.stack}`, 'error');
+            }
+            return false; // Don't prevent default handling
+        };
+
+        window.addEventListener('unhandledrejection', function(e) {
+            const errorMsg = `UNHANDLED PROMISE: ${e.reason}`;
+            allErrors.push(errorMsg);
+            log(errorMsg, 'error');
+            if (e.reason && e.reason.stack) {
+                log(`PROMISE STACK: ${e.reason.stack}`, 'error');
+            }
+        });
+
+        // Capture module loading errors
+        window.addEventListener('error', function(e) {
+            if (e.target && e.target.tagName === 'SCRIPT') {
+                const errorMsg = `SCRIPT LOAD ERROR: ${e.target.src}`;
+                allErrors.push(errorMsg);
+                log(errorMsg, 'error');
+            }
+        }, true);
+
+        log('🚀 AGGRESSIVE DEBUG STARTED', 'success');
+
+        // Test the main page and extract exact script
+        async function aggressiveTest() {
+            try {
+                log('📄 Fetching main page HTML...', 'info');
+                const response = await fetch('/');
+                const html = await response.text();
+                
+                log('✅ Main page HTML fetched', 'success');
+                
+                // Find the exact script being loaded
+                const scriptMatches = html.match(/<script[^>]*src="([^"]*)"[^>]*>/g);
+                if (scriptMatches) {
+                    log(`📜 Found ${scriptMatches.length} script tags:`, 'info');
+                    scriptMatches.forEach((match, i) => {
+                        const src = match.match(/src="([^"]*)"/)[1];
+                        log(`   ${i+1}. ${src}`, 'info');
+                    });
+                    
+                    // Find the main module script
+                    const moduleScript = scriptMatches.find(s => s.includes('type="module"'));
+                    if (moduleScript) {
+                        const src = moduleScript.match(/src="([^"]*)"/)[1];
+                        log(`🎯 MAIN MODULE SCRIPT: ${src}`, 'success');
+                        
+                        // Test loading this exact script
+                        await testExactScript(src);
+                    } else {
+                        log('❌ No module script found', 'error');
+                    }
+                } else {
+                    log('❌ No script tags found', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Failed to fetch main page: ${error.message}`, 'error');
+            }
+        }
+
+        // Test loading the exact script
+        async function testExactScript(src) {
+            return new Promise((resolve) => {
+                log(`📜 Loading exact script: ${src}`, 'info');
+                
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = src;
+                
+                let loadTimeout = setTimeout(() => {
+                    log('⏰ Script loading timeout (30s)', 'error');
+                    resolve();
+                }, 30000);
+                
+                script.onload = () => {
+                    clearTimeout(loadTimeout);
+                    log('✅ Script loaded successfully', 'success');
+                    
+                    // Wait for React to mount
+                    let checkCount = 0;
+                    const checkInterval = setInterval(() => {
+                        checkCount++;
+                        const root = document.getElementById('root');
+                        
+                        if (root && root.children.length > 0) {
+                            clearInterval(checkInterval);
+                            log('🎉 REACT MOUNTED SUCCESSFULLY!', 'success');
+                            log(`Root content: ${root.innerHTML.substring(0, 200)}...`, 'info');
+                            showSummary();
+                            resolve();
+                        } else if (checkCount >= 20) { // 10 seconds
+                            clearInterval(checkInterval);
+                            log('❌ React did NOT mount after 10 seconds', 'error');
+                            log('🔍 Checking for captured errors...', 'info');
+                            showSummary();
+                            resolve();
+                        }
+                    }, 500);
+                };
+                
+                script.onerror = (e) => {
+                    clearTimeout(loadTimeout);
+                    log(`❌ Script failed to load: ${e}`, 'error');
+                    showSummary();
+                    resolve();
+                };
+                
+                document.head.appendChild(script);
+                log('📜 Script added to DOM', 'info');
+            });
+        }
+
+        // Show comprehensive summary
+        function showSummary() {
+            log('📋 === COMPREHENSIVE ERROR SUMMARY ===', 'info');
+            
+            if (allErrors.length > 0) {
+                log(`❌ FOUND ${allErrors.length} ERRORS:`, 'error');
+                allErrors.forEach((error, i) => {
+                    log(`${i+1}. ${error}`, 'error');
+                });
+            } else {
+                log('✅ NO ERRORS CAPTURED', 'success');
+            }
+            
+            if (allWarnings.length > 0) {
+                log(`⚠️ FOUND ${allWarnings.length} WARNINGS:`, 'warning');
+                allWarnings.forEach((warning, i) => {
+                    log(`${i+1}. ${warning}`, 'warning');
+                });
+            }
+            
+            if (allLogs.length > 0) {
+                log(`📝 CAPTURED ${allLogs.length} LOG MESSAGES`, 'info');
+                // Show last 10 logs
+                const recentLogs = allLogs.slice(-10);
+                recentLogs.forEach((logMsg, i) => {
+                    log(`${allLogs.length - 10 + i + 1}. ${logMsg}`, 'info');
+                });
+            }
+            
+            // Check root element status
+            const root = document.getElementById('root');
+            if (root) {
+                log(`📍 ROOT ELEMENT STATUS:`, 'info');
+                log(`   - Exists: YES`, 'success');
+                log(`   - Children: ${root.children.length}`, root.children.length > 0 ? 'success' : 'error');
+                log(`   - innerHTML length: ${root.innerHTML.length}`, root.innerHTML.length > 0 ? 'success' : 'error');
+                if (root.innerHTML.length > 0) {
+                    log(`   - Content preview: ${root.innerHTML.substring(0, 100)}...`, 'info');
+                }
+            } else {
+                log(`❌ ROOT ELEMENT: NOT FOUND`, 'error');
+            }
+            
+            log('🏁 AGGRESSIVE DEBUG COMPLETE', 'info');
+        }
+
+        // Start the aggressive test
+        setTimeout(aggressiveTest, 1000);
+        
+        // Also set up a final summary after 45 seconds
+        setTimeout(() => {
+            log('⏰ FINAL TIMEOUT SUMMARY (45s)', 'warning');
+            showSummary();
+        }, 45000);
+    </script>
+    
+    <!-- Add a root element for testing -->
+    <div id="root"></div>
+</body>
+</html>

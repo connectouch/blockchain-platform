@@ -1,0 +1,53 @@
+name: Deploy Connectouch Full Platform
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: apps/frontend/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd apps/frontend
+        npm install --legacy-peer-deps
+        
+    - name: Build full platform
+      run: |
+        cd apps/frontend
+        npm run build:full
+      env:
+        VITE_SUPABASE_URL: https://aompecyfgnakkmldhidg.supabase.co
+        VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvbXBlY3lmZ25ha2ttbGRoaWRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3MzMwODYsImV4cCI6MjA2OTMwOTA4Nn0.SSbGerxCplUZd_ZJDCK3HrfHM_m0it2lExgKBv3bt9A
+        VITE_ENABLE_AI_ASSISTANT: true
+        VITE_ENABLE_VOICE_COMMANDS: true
+        VITE_ENABLE_TRADING: true
+        VITE_ENABLE_NOTIFICATIONS: true
+        VITE_ENABLE_REAL_TIME_DATA: true
+        VITE_ENABLE_ADVANCED_CHARTS: true
+        VITE_ENABLE_MULTI_CHAIN: true
+        VITE_ENABLE_PORTFOLIO_ANALYTICS: true
+        VITE_ENABLE_GAMEFI: true
+        VITE_ENABLE_DAO_FEATURES: true
+        VITE_ENABLE_INFRASTRUCTURE_MONITORING: true
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: apps/frontend/dist
+        cname: connectouch.ai

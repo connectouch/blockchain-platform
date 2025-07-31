@@ -1,4 +1,33 @@
 {
+  "name": "connectouch-full-platform",
+  "version": "2.0.0",
+  "description": "Connectouch Blockchain AI Platform - Full Featured Rich Experience",
+  "type": "module",
+  "scripts": {
+    "dev": "cd apps/frontend && npm run dev:full",
+    "build": "cd apps/frontend && npm install --legacy-peer-deps && npm run build:full",
+    "start": "cd apps/frontend && npm run preview:full",
+    "deploy": "vercel --prod",
+    "deploy:full": "npm run build && vercel --prod"
+  },
+  "keywords": [
+    "blockchain",
+    "ai",
+    "cryptocurrency",
+    "defi",
+    "nft",
+    "trading",
+    "portfolio",
+    "web3",
+    "fullstack",
+    "rich-features"
+  ],
+  "author": "Connectouch",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "dependencies": {
     "axios": "^1.11.0",
     "dotenv": "^17.2.1"

@@ -24,6 +24,7 @@ const navigation = [
   { name: 'Infrastructure', href: '/infrastructure', icon: '⚡' },
   { name: 'Web3 Tools', href: '/web3-tools', icon: '🔧' },
   { name: 'Analysis', href: '/analysis', icon: '🧠' },
+  { name: 'API Demo', href: '/api-demo', icon: '🚀' },
 ]
 
 const Navbar: React.FC = () => {

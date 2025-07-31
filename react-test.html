@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>React Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #0a0a0a; 
+            color: #00ff00; 
+        }
+        .success { background: #44ff44; color: black; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ff4444; color: white; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .info { background: #4444ff; color: white; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 React Loading Test</h1>
+    <div id="test-results"></div>
+    <div id="root"></div>
+
+    <script>
+        const results = document.getElementById('test-results');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        // Test 1: Check if main script loads
+        log('🚀 Starting React test...', 'info');
+        
+        // Test 2: Try to load the main script
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = '/assets/index-DOLsxV1p.js';
+        
+        script.onload = () => {
+            log('✅ Main script loaded successfully', 'success');
+            
+            // Wait a bit and check if React mounted
+            setTimeout(() => {
+                const root = document.getElementById('root');
+                if (root && root.children.length > 0) {
+                    log('✅ React has mounted content!', 'success');
+                    log(`📊 Root content: ${root.innerHTML.substring(0, 200)}...`, 'info');
+                } else {
+                    log('❌ React has not mounted any content', 'error');
+                    log('🔍 Checking for errors...', 'info');
+                    
+                    // Check console for errors
+                    const errors = window.console.errors || [];
+                    if (errors.length > 0) {
+                        errors.forEach(error => {
+                            log(`❌ Console Error: ${error}`, 'error');
+                        });
+                    }
+                }
+            }, 3000);
+        };
+        
+        script.onerror = (error) => {
+            log(`❌ Failed to load main script: ${error}`, 'error');
+        };
+        
+        // Capture console errors
+        const originalError = console.error;
+        window.console.errors = [];
+        console.error = function(...args) {
+            const message = args.join(' ');
+            window.console.errors.push(message);
+            log(`❌ Console Error: ${message}`, 'error');
+            originalError.apply(console, args);
+        };
+        
+        // Capture unhandled errors
+        window.addEventListener('error', function(e) {
+            log(`❌ JavaScript Error: ${e.message} at ${e.filename}:${e.lineno}`, 'error');
+        });
+        
+        // Capture unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            log(`❌ Unhandled Promise Rejection: ${e.reason}`, 'error');
+        });
+        
+        document.head.appendChild(script);
+        
+        log('📜 Script tag added to head', 'info');
+    </script>
+</body>
+</html>

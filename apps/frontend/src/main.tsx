@@ -8,27 +8,20 @@ import './index.css'
 // Import the main App component with error boundary
 import App from './App'
 
-// Enhanced startup logging for FULL VERSION
-console.log('🚀 Connectouch Platform Starting (FULL FEATURED VERSION)...')
-console.log('📊 Environment:', {
-  mode: import.meta.env.MODE,
-  dev: import.meta.env.DEV,
-  prod: import.meta.env.PROD,
-  supabaseUrl: import.meta.env.VITE_SUPABASE_URL ? 'Set' : 'Missing',
-  supabaseKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Set' : 'Missing'
-})
+// IMMEDIATE STARTUP - NO DELAYS
+console.log('🚀 Connectouch Platform Starting IMMEDIATELY...')
 
-// Performance monitoring
-console.log('⚡ Performance Monitoring Active')
+// Force remove any loading screens
+setTimeout(() => {
+  const loadingScreens = document.querySelectorAll('div[style*="min-height: 100vh"]')
+  loadingScreens.forEach(screen => {
+    if (screen.textContent?.includes('Loading') || screen.textContent?.includes('Rich Components')) {
+      screen.remove()
+    }
+  })
+}, 100)
+
 const startTime = performance.now()
-
-// Feature flags logging
-console.log('🎛️ Feature Flags:', {
-  aiAssistant: import.meta.env.REACT_APP_ENABLE_AI_ASSISTANT !== 'false',
-  voiceCommands: import.meta.env.REACT_APP_ENABLE_VOICE_COMMANDS !== 'false',
-  trading: import.meta.env.REACT_APP_ENABLE_TRADING !== 'false',
-  notifications: import.meta.env.REACT_APP_ENABLE_NOTIFICATIONS !== 'false'
-})
 
 // Enhanced global error handlers with detailed logging
 window.addEventListener('error', (event) => {
@@ -231,8 +224,8 @@ try {
 
   console.log('✅ Enhanced React app rendered with full features')
 
-  // Enhanced success verification and performance monitoring
-  setTimeout(() => {
+  // IMMEDIATE success verification - NO DELAYS
+  const checkSuccess = () => {
     const endTime = performance.now()
     const loadTime = endTime - startTime
 
@@ -312,7 +305,11 @@ try {
         loadTime: `${loadTime.toFixed(2)}ms`
       })
     }
-  }, 2000)
+  }
+
+  // Call immediately and also after a short delay as backup
+  checkSuccess()
+  setTimeout(checkSuccess, 100)
 
 } catch (error) {
   console.error('💥 CRITICAL ERROR in Enhanced main.tsx:', error)

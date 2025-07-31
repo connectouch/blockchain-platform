@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Error Check</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            padding: 20px; 
+            background: #000; 
+            color: #00ff00; 
+            line-height: 1.6;
+        }
+        .error { background: #ff0000; color: white; padding: 10px; margin: 10px 0; }
+        .success { background: #00ff00; color: black; padding: 10px; margin: 10px 0; }
+        .info { background: #0066ff; color: white; padding: 10px; margin: 10px 0; }
+        pre { background: #333; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 DIRECT ERROR CHECK</h1>
+    <div id="output"></div>
+
+    <script>
+        const output = document.getElementById('output');
+        const errors = [];
+        
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = msg;
+            output.appendChild(div);
+            console.log(msg);
+        }
+
+        // Capture ALL errors
+        window.onerror = function(msg, file, line, col, error) {
+            const errorMsg = `ERROR: ${msg} at ${file}:${line}:${col}`;
+            errors.push(errorMsg);
+            log(errorMsg, 'error');
+            if (error && error.stack) {
+                log(`STACK: ${error.stack}`, 'error');
+            }
+            return false;
+        };
+
+        window.addEventListener('unhandledrejection', function(e) {
+            const errorMsg = `PROMISE REJECTION: ${e.reason}`;
+            errors.push(errorMsg);
+            log(errorMsg, 'error');
+        });
+
+        // Override console.error
+        const originalError = console.error;
+        console.error = function(...args) {
+            const msg = args.join(' ');
+            errors.push(`CONSOLE ERROR: ${msg}`);
+            log(`CONSOLE ERROR: ${msg}`, 'error');
+            originalError.apply(console, args);
+        };
+
+        log('🚀 Starting direct error check...', 'info');
+
+        // Check if we can access the main page
+        async function checkMainPage() {
+            try {
+                log('📄 Fetching main page...', 'info');
+                const response = await fetch('/');
+                const html = await response.text();
+                
+                log('✅ Main page fetched successfully', 'success');
+                
+                // Extract script src
+                const scriptMatch = html.match(/src="([^"]*\.js)"/g);
+                if (scriptMatch) {
+                    log(`📜 Found ${scriptMatch.length} script tags`, 'info');
+                    scriptMatch.forEach(match => {
+                        log(`   ${match}`, 'info');
+                    });
+                    
+                    // Get the main script
+                    const mainScript = scriptMatch.find(s => s.includes('index-') || s.includes('main-'));
+                    if (mainScript) {
+                        const src = mainScript.match(/src="([^"]*)"/)[1];
+                        log(`🎯 Main script: ${src}`, 'info');
+                        
+                        // Try to load it directly
+                        await testScript(src);
+                    }
+                } else {
+                    log('❌ No script tags found in HTML', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Failed to fetch main page: ${error.message}`, 'error');
+            }
+        }
+
+        // Test loading a script directly
+        async function testScript(src) {
+            return new Promise((resolve) => {
+                log(`📜 Testing script: ${src}`, 'info');
+                
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = src;
+                
+                script.onload = () => {
+                    log('✅ Script loaded successfully', 'success');
+                    
+                    // Wait and check for React
+                    setTimeout(() => {
+                        const root = document.getElementById('root');
+                        if (root) {
+                            if (root.children.length > 0) {
+                                log('🎉 REACT MOUNTED!', 'success');
+                                log(`Root content: ${root.innerHTML.substring(0, 100)}...`, 'info');
+                            } else {
+                                log('❌ React did not mount - root is empty', 'error');
+                            }
+                        } else {
+                            log('❌ No root element found', 'error');
+                        }
+                        
+                        // Show all captured errors
+                        if (errors.length > 0) {
+                            log(`📋 CAPTURED ${errors.length} ERRORS:`, 'error');
+                            errors.forEach((err, i) => {
+                                log(`${i+1}. ${err}`, 'error');
+                            });
+                        } else {
+                            log('✅ No errors captured', 'success');
+                        }
+                        
+                        resolve();
+                    }, 3000);
+                };
+                
+                script.onerror = (e) => {
+                    log(`❌ Script failed to load: ${e}`, 'error');
+                    resolve();
+                };
+                
+                document.head.appendChild(script);
+            });
+        }
+
+        // Check if root element exists
+        function checkRoot() {
+            const root = document.getElementById('root');
+            if (root) {
+                log('✅ Root element exists', 'success');
+                log(`Root innerHTML: "${root.innerHTML}"`, 'info');
+            } else {
+                log('❌ Root element missing', 'error');
+            }
+        }
+
+        // Run the check
+        async function runCheck() {
+            checkRoot();
+            await checkMainPage();
+            
+            log('🏁 Direct error check complete', 'info');
+            
+            if (errors.length === 0) {
+                log('🤔 No errors found - React should be working', 'success');
+            } else {
+                log(`⚠️ Found ${errors.length} issues that need fixing`, 'error');
+            }
+        }
+
+        // Start after 1 second
+        setTimeout(runCheck, 1000);
+    </script>
+    
+    <!-- Add a root element for testing -->
+    <div id="root"></div>
+</body>
+</html>

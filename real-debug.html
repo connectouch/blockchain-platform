@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real Debug - Find Actual Issue</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #000; 
+            color: #00ff00; 
+        }
+        .error { background: #ff4444; color: white; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #44ff44; color: black; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .info { background: #4444ff; color: white; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        pre { background: #333; padding: 10px; border-radius: 5px; overflow-x: auto; color: #00ff00; }
+    </style>
+</head>
+<body>
+    <h1>🔍 REAL DEBUG - Find Actual Issue</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        const allErrors = [];
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        // Capture EVERYTHING
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        console.error = function(...args) {
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            allErrors.push(`Console Error: ${message}`);
+            log(`❌ CONSOLE ERROR: ${message}`, 'error');
+            originalConsole.error.apply(console, args);
+        };
+
+        console.warn = function(...args) {
+            const message = args.join(' ');
+            log(`⚠️ CONSOLE WARN: ${message}`, 'info');
+            originalConsole.warn.apply(console, args);
+        };
+
+        window.addEventListener('error', function(e) {
+            const errorMsg = `${e.message} at ${e.filename}:${e.lineno}:${e.colno}`;
+            allErrors.push(`JavaScript Error: ${errorMsg}`);
+            log(`❌ JS ERROR: ${errorMsg}`, 'error');
+            if (e.error?.stack) {
+                log(`Stack: ${e.error.stack}`, 'error');
+            }
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            const errorMsg = `Unhandled Promise: ${e.reason}`;
+            allErrors.push(errorMsg);
+            log(`❌ PROMISE ERROR: ${errorMsg}`, 'error');
+        });
+
+        log('🚀 Starting REAL debug...', 'success');
+
+        // Test the actual main script
+        async function testRealScript() {
+            log('📜 Testing the ACTUAL main script...', 'info');
+            
+            try {
+                // Get the current script from the main page
+                const mainPageResponse = await fetch('/');
+                const mainPageHtml = await mainPageResponse.text();
+                
+                // Extract the actual script src
+                const scriptMatch = mainPageHtml.match(/src="([^"]*main[^"]*\.tsx?)"/);
+                if (!scriptMatch) {
+                    log('❌ Could not find main script in HTML', 'error');
+                    return;
+                }
+                
+                const scriptSrc = scriptMatch[1];
+                log(`📍 Found main script: ${scriptSrc}`, 'info');
+                
+                // Try to load it
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = scriptSrc;
+                
+                return new Promise((resolve) => {
+                    script.onload = () => {
+                        log('✅ Script loaded successfully', 'success');
+                        
+                        // Wait and check what happened
+                        setTimeout(() => {
+                            const root = document.getElementById('root');
+                            if (root && root.children.length > 0) {
+                                log('🎉 React mounted successfully!', 'success');
+                                log(`Content: ${root.innerHTML.substring(0, 200)}...`, 'info');
+                            } else {
+                                log('❌ React did NOT mount', 'error');
+                                
+                                // Show all errors we captured
+                                if (allErrors.length > 0) {
+                                    log(`📋 CAPTURED ${allErrors.length} ERRORS:`, 'error');
+                                    allErrors.forEach((error, index) => {
+                                        log(`${index + 1}. ${error}`, 'error');
+                                    });
+                                } else {
+                                    log('🤔 NO ERRORS CAPTURED - This is the real mystery!', 'info');
+                                }
+                                
+                                // Check if React globals exist
+                                if (window.React) {
+                                    log('✅ React global exists', 'success');
+                                } else {
+                                    log('❌ React global missing', 'error');
+                                }
+                                
+                                if (window.ReactDOM) {
+                                    log('✅ ReactDOM global exists', 'success');
+                                } else {
+                                    log('❌ ReactDOM global missing', 'error');
+                                }
+                            }
+                            resolve();
+                        }, 5000);
+                    };
+                    
+                    script.onerror = (error) => {
+                        log(`❌ Script failed to load: ${error}`, 'error');
+                        resolve();
+                    };
+                    
+                    document.head.appendChild(script);
+                    log('📜 Script added to head', 'info');
+                });
+                
+            } catch (error) {
+                log(`❌ Error in testRealScript: ${error.message}`, 'error');
+            }
+        }
+
+        // Test if the built files exist
+        async function testBuiltFiles() {
+            log('📦 Testing built files...', 'info');
+            
+            try {
+                const indexResponse = await fetch('/');
+                const indexHtml = await indexResponse.text();
+                
+                // Extract all asset references
+                const assetMatches = indexHtml.match(/\/assets\/[^"']*/g) || [];
+                
+                log(`📊 Found ${assetMatches.length} asset references`, 'info');
+                
+                for (const asset of assetMatches) {
+                    try {
+                        const response = await fetch(asset);
+                        if (response.ok) {
+                            const size = response.headers.get('content-length') || 'unknown';
+                            log(`✅ ${asset} - OK (${size} bytes)`, 'success');
+                        } else {
+                            log(`❌ ${asset} - Failed (${response.status})`, 'error');
+                        }
+                    } catch (error) {
+                        log(`❌ ${asset} - Error: ${error.message}`, 'error');
+                    }
+                }
+                
+            } catch (error) {
+                log(`❌ Error testing built files: ${error.message}`, 'error');
+            }
+        }
+
+        // Check the actual HTML structure
+        function checkHTML() {
+            log('📄 Checking HTML structure...', 'info');
+            
+            const root = document.getElementById('root');
+            if (root) {
+                log('✅ Root element exists', 'success');
+                log(`Root innerHTML: "${root.innerHTML}"`, 'info');
+                log(`Root children: ${root.children.length}`, 'info');
+            } else {
+                log('❌ Root element missing', 'error');
+            }
+            
+            // Check if we're on the right page
+            log(`Current URL: ${window.location.href}`, 'info');
+            log(`Document title: ${document.title}`, 'info');
+        }
+
+        // Run all tests
+        async function runRealDebug() {
+            checkHTML();
+            await testBuiltFiles();
+            await testRealScript();
+            
+            log('🏁 REAL DEBUG COMPLETE', 'info');
+            
+            if (allErrors.length === 0) {
+                log('🤔 NO ERRORS FOUND - The mystery deepens...', 'info');
+                log('This suggests React is loading but not executing main()', 'info');
+            } else {
+                log(`⚠️ FOUND ${allErrors.length} REAL ISSUES TO FIX`, 'error');
+            }
+        }
+
+        // Start the real debug
+        setTimeout(runRealDebug, 1000);
+    </script>
+</body>
+</html>

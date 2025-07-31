@@ -3,7 +3,6 @@ import { Routes, Route } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 // import { useElectron, usePriceAlerts } from '@hooks/useElectron' // Disabled for web deployment
-import ProductionMonitor from '@components/ProductionMonitor'
 import { AuthProvider } from './contexts/AuthContext'
 
 // Enhanced real-time components - Direct imports for debugging
@@ -30,10 +29,11 @@ const InfrastructurePage = React.lazy(() => import('@pages/InfrastructurePage'))
 import Navbar from '@components/Navbar'
 import Footer from '@components/Footer'
 import BackgroundEffects from '@components/BackgroundEffects'
-import FloatingPriceTicker from '@components/FloatingPriceTicker'
+// import FloatingPriceTicker from '@components/FloatingPriceTicker' // Removed per user request
 import SimplePriceTicker from '@components/SimplePriceTicker'
-import EnhancedConnectionMonitor from '@components/EnhancedConnectionMonitor'
+// import EnhancedConnectionMonitor from '@components/EnhancedConnectionMonitor' // Removed per user request
 import ProductionMonitor from '@components/ProductionMonitor'
+import RealAPIDemo from '@components/RealAPIDemo'
 // import FloatingTickerSettings from '@components/FloatingTickerSettings' // Available if needed
 
 // Contexts
@@ -423,6 +423,21 @@ const AppContent: React.FC = () => {
                   </motion.div>
                 }
               />
+              <Route
+                path="/api-demo"
+                element={
+                  <motion.div
+                    key="api-demo"
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    transition={pageTransition}
+                  >
+                    <RealAPIDemo />
+                  </motion.div>
+                }
+              />
 
             </Routes>
           </Suspense>
@@ -434,24 +449,17 @@ const AppContent: React.FC = () => {
 
       {/* RESTORED: All Rich Features and System Health Indicators */}
 
-      {/* Floating Price Ticker - Card style (ENABLED) */}
-      <FloatingPriceTicker />
+      {/* Floating Price Ticker - REMOVED per user request */}
 
       {/* Simple Price Ticker - Bottom position (ENABLED) */}
       <SimplePriceTicker />
 
-      {/* Enhanced Connection Monitor (ENABLED) */}
-      <EnhancedConnectionMonitor />
+      {/* Enhanced Connection Monitor - REMOVED per user request */}
 
       {/* Production Monitor (ENABLED) */}
       <ProductionMonitor />
 
-      {/* Real-time Notifications (ENABLED) */}
-      <div className="fixed top-4 left-4 z-50">
-        <div className="bg-green-500/20 backdrop-blur-lg rounded-lg px-4 py-2 text-sm text-green-400 border border-green-500/30">
-          🚀 Full Platform Active
-        </div>
-      </div>
+      {/* Real-time Notifications - REMOVED per user request */}
     </div>
   )
 }

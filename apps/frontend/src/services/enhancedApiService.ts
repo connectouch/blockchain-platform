@@ -13,7 +13,7 @@ declare module 'axios' {
 }
 
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import { enhancedDatabaseService } from './enhancedDatabaseService'
+// import { enhancedDatabaseService } from './enhancedDatabaseService' // Temporarily disabled
 
 export interface ApiConfig {
   primary: {
@@ -459,22 +459,19 @@ export class EnhancedApiService {
     if (!config?.cache.enabled) return
 
     try {
-      // Try Redis first
-      await enhancedDatabaseService.setCache(key, data, config.cache.ttl)
-    } catch (error) {
-      // Fallback to in-memory cache
+      // Use in-memory cache for now (database service disabled)
       this.cache.set(key, {
         data,
         expires: Date.now() + (config.cache.ttl * 1000)
       })
+    } catch (error) {
+      console.error('Cache set failed:', error)
     }
   }
 
   private async getFromCache<T>(key: string): Promise<T | null> {
     try {
-      // Try Redis first
-      const cached = await enhancedDatabaseService.getCache<T>(key)
-      if (cached) return cached
+      // Use in-memory cache for now (database service disabled)
 
       // Fallback to in-memory cache
       const memCached = this.cache.get(key)

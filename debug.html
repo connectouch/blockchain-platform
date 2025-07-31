@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Connectouch Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white; }
+        .error { background: #ff4444; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #44ff44; color: black; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .info { background: #4444ff; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        pre { background: #333; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Connectouch Platform Debug</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        // Capture all console errors
+        const originalError = console.error;
+        console.error = function(...args) {
+            log(`❌ Console Error: ${args.join(' ')}`, 'error');
+            originalError.apply(console, args);
+        };
+
+        // Capture unhandled errors
+        window.addEventListener('error', function(e) {
+            log(`❌ JavaScript Error: ${e.message} at ${e.filename}:${e.lineno}`, 'error');
+        });
+
+        // Capture unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            log(`❌ Unhandled Promise Rejection: ${e.reason}`, 'error');
+        });
+
+        log('🚀 Debug script started', 'success');
+
+        // Test 1: Check if main app files exist
+        async function testMainFiles() {
+            log('📁 Testing main application files...');
+            
+            const files = [
+                '/assets/index-C6M71HU2.js',
+                '/assets/index-DoPNr-30.css',
+                '/assets/vendor-Bs7gn1Hv.js'
+            ];
+
+            for (const file of files) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        log(`✅ ${file} - OK (${response.status})`, 'success');
+                    } else {
+                        log(`❌ ${file} - Failed (${response.status})`, 'error');
+                    }
+                } catch (error) {
+                    log(`❌ ${file} - Error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Test 2: Check if React is loading
+        function testReact() {
+            log('⚛️ Testing React...');
+            
+            setTimeout(() => {
+                if (window.React) {
+                    log('✅ React is loaded', 'success');
+                } else {
+                    log('❌ React is not loaded', 'error');
+                }
+
+                const root = document.getElementById('root');
+                if (root) {
+                    log(`✅ Root element found`, 'success');
+                    log(`📊 Root element content: "${root.innerHTML.substring(0, 100)}..."`, 'info');
+                    log(`📊 Root element children: ${root.children.length}`, 'info');
+                } else {
+                    log('❌ Root element not found', 'error');
+                }
+            }, 2000);
+        }
+
+        // Test 3: Check environment variables
+        function testEnvironment() {
+            log('🔧 Testing environment...');
+            
+            // Try to access some common globals
+            const globals = ['process', 'import', 'module'];
+            globals.forEach(global => {
+                if (window[global]) {
+                    log(`✅ ${global} is available`, 'success');
+                } else {
+                    log(`❌ ${global} is not available`, 'error');
+                }
+            });
+        }
+
+        // Test 4: Try to manually load and execute the main script
+        async function testMainScript() {
+            log('📜 Testing main script execution...');
+            
+            try {
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = '/assets/index-C6M71HU2.js';
+                script.onload = () => log('✅ Main script loaded successfully', 'success');
+                script.onerror = (e) => log(`❌ Main script failed to load: ${e}`, 'error');
+                document.head.appendChild(script);
+            } catch (error) {
+                log(`❌ Error loading main script: ${error.message}`, 'error');
+            }
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            await testMainFiles();
+            testReact();
+            testEnvironment();
+            await testMainScript();
+            
+            log('🏁 All tests completed. Check results above.', 'info');
+        }
+
+        // Start tests after a short delay
+        setTimeout(runAllTests, 1000);
+    </script>
+</body>
+</html>

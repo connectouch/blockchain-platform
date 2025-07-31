@@ -1,51 +1,22 @@
 {
   "version": 2,
-  "buildCommand": "cd apps/frontend && npm install && npm run build:production",
+  "name": "connectouch-full-platform",
+  "buildCommand": "echo 'Using pre-built files'",
   "outputDirectory": "apps/frontend/dist",
   "installCommand": "cd apps/frontend && npm install --legacy-peer-deps",
-  "devCommand": "cd apps/frontend && npm run dev",
+  "devCommand": "cd apps/frontend && npm run dev:full",
   "framework": "vite",
 
+
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/health-check",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/health-check"
-    },
-    {
-      "source": "/api/crypto-prices",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/crypto-prices"
-    },
-    {
-      "source": "/api/live-prices",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/live-prices"
-    },
-    {
-      "source": "/api/nft-collections",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/nft-collections"
-    },
-    {
-      "source": "/api/ai-analysis",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/ai-analysis"
-    },
-    {
-      "source": "/api/ai-predictions",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/ai-predictions"
-    },
-    {
-      "source": "/api/defi-protocols",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/defi-protocols"
-    },
-    {
-      "source": "/api/portfolio-sync",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/portfolio-sync"
-    },
-    {
-      "source": "/api/image-proxy",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/image-proxy"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "https://aompecyfgnakkmldhidg.supabase.co/functions/v1/$1"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
@@ -119,6 +90,7 @@
     "VITE_ENABLE_DAO_FEATURES": "true",
     "VITE_ENABLE_INFRASTRUCTURE_MONITORING": "true"
   },
+  "public": true,
   "build": {
     "env": {
       "NODE_ENV": "production",
